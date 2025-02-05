@@ -77,12 +77,12 @@ module Import
                                  [0-9]+[+>_-][0-9]+[+>_-][0-9]+[ACGTdelinsup]+|
                                  [0-9]+.[0-9]+[a-z]+>[a-z]+)\s?/ix
 
-            EXON_VARIANT_REGEX = /(?<variant>del|dup|ins).+ex(on)?s?\s?
-                                  (?<exons>[0-9]+((to|and|-|\s)+[0-9]+)?)|
-                                  ex(on)?s?\s?(?<exons>[0-9]+((to|and|-|\s)+[0-9]+)?)\s?
-                                  (?<variant>del|dup|ins)?|
-                                  x(?<exons>[0-9+-? ]+)+(?<variant>del|dup|ins)|
-                                  ^(?<variant>del|dup|ins)\s?(?<exons>[0-9]+((to|and|-|\s)+[0-9]+)?)
+            EXON_VARIANT_REGEX = /(?<variant>del|dup|ins).+ex(on)?s?\s?(?<exons>[0-9ACGT]+((to|and|-|\s)+[0-9ACGT]+)?)|
+                                  (?<exons>ex(on)?s?\s?[0-9ACGT]+(to|and|-|\s)?ex(on)?s?[0-9ACGT]+)\s*(?<variant>del|dup|ins)|
+                                  ex(on)?s?\s?(?<exons>[0-9ACGT]+((to|and|-|\s)+[0-9ACGT]+)?)\s?(?<variant>del|dup|ins)?|
+                                  (?<exons>x(on)?s?\s?[0-9ACGT]+(to|and|-|\s)?x(on)?s?[0-9ACGT]+)\s*(?<variant>del|dup|ins)|
+                                  x(?<exons>[0-9+-? ACGT]+)+(?<variant>del|dup|ins)|
+                                  ^(?<variant>del|dup|ins)\s?(?<exons>[0-9]+((to|and|-|\s)+[0-9ACGT]+)?)
                                   /ix
             # rubocop:enable Lint/MixedRegexpCaptureTypes
           end

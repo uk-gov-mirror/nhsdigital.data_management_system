@@ -501,6 +501,20 @@ class NewcastleHandlerTest < ActiveSupport::TestCase
     assert_equal '2-24', genotypes[0].attribute_map['exonintroncodonnumber']
     assert_equal 1, genotypes[0].attribute_map['variantlocation']
     assert_equal 7, genotypes[0].attribute_map['gene']
+    exonic_var_rec.raw_fields['genotype'] = 'exon13A-13C dup'
+    genotypes = @handler.process_variant_records(@genotype, exonic_var_rec)
+    assert_equal '13a-13c', genotypes[0].attribute_map['exonintroncodonnumber']
+    exonic_var_rec.raw_fields['genotype'] = 'x14-x20del'
+    genotypes = @handler.process_variant_records(@genotype, exonic_var_rec)
+    assert_equal 'x14-x20', genotypes[0].attribute_map['exonintroncodonnumber']
+    exonic_var_rec.raw_fields['genotype'] = 'ex14-ex20del'
+    genotypes = @handler.process_variant_records(@genotype, exonic_var_rec)
+    assert_equal 'ex14-ex20', genotypes[0].attribute_map['exonintroncodonnumber']
+    assert_equal 3, genotypes[0].attribute_map['sequencevarianttype']
+    exonic_var_rec.raw_fields['genotype'] = 'ex14-ex20  dup'
+    genotypes = @handler.process_variant_records(@genotype, exonic_var_rec)
+    assert_equal 'ex14-ex20', genotypes[0].attribute_map['exonintroncodonnumber']
+    assert_equal 4, genotypes[0].attribute_map['sequencevarianttype']
   end
 
   private

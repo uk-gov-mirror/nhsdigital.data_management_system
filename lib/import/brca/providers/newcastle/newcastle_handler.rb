@@ -1,5 +1,4 @@
 require 'possibly'
-# require 'import/brca/providers/newcastle/newcastle_storage_manager'
 
 module Import
   module Brca
@@ -206,14 +205,6 @@ module Import
             return false if genotype.attribute_map['genetictestscope'].nil?
 
             genotype.attribute_map['genetictestscope'].scan(/Unable/i).size.positive?
-          end
-
-          def positive_cdna?(variant)
-            variant.scan(CDNA_REGEX).size.positive?
-          end
-
-          def positive_exonvariant?(variant)
-            variant.scan(EXON_VARIANT_REGEX).size.positive?
           end
 
           def pathogenic?(record)
