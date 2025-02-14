@@ -12,6 +12,7 @@ module Import
             # return for brca cases
             return if record.raw_fields['investigation code'].match(/BRCA/i)
 
+            record.raw_fields['genotype']&.gsub!('SGC5', 'SCG5')
             genocolorectal = Import::Colorectal::Core::Genocolorectal.new(record)
             genocolorectal.add_passthrough_fields(record.mapped_fields,
                                                   record.raw_fields,
@@ -23,7 +24,7 @@ module Import
             add_test_scope(genocolorectal, record)
             add_test_type(genocolorectal, record)
             add_test_status(genocolorectal, record)
-            res = process_variant_records(genocolorectal, record) # Added by Francesco
+            res = process_variant_records(genocolorectal, record)
             res.each { |cur_genotype| @persister.integrate_and_store(cur_genotype) }
           end
 
@@ -127,8 +128,7 @@ module Import
             genocolorectal.add_gene_colorectal(gene)
             if positive_rec?(genocolorectal)
               add_fs_negative_genes(gene, genocolorectal, genocolorectals, record)
-              process_variants(genocolorectal, variant)
-              genocolorectals.append(genocolorectal)
+              process_variants(genocolorectals, genocolorectal, variant)
             elsif gene.present? # for other status records
               add_fs_negative_genes(gene, genocolorectal, genocolorectals, record)
               genocolorectals.append(genocolorectal)
@@ -138,8 +138,10 @@ module Import
             add_variant_class(genocolorectal, record)
           end
 
-          def add_fs_negative_genes(gene, genocolorectal, genocolorectals, _record)
+          def add_fs_negative_genes(gene, genocolorectal, genocolorectals, record)
             negative_genes = @genes_panel - [gene] unless @genes_panel == [gene]
+            variant_gene = record.raw_fields['genotype']&.scan(COLORECTAL_GENES_REGEX)&.flatten
+            negative_genes -= variant_gene if variant_gene.present?
             negative_genes&.each do |neg_gene|
               genocolo_other = genocolorectal.dup_colo
               genocolo_other.add_status(1)
@@ -164,9 +166,12 @@ module Import
             variant = record.raw_fields['genotype']
             gene = get_gene(record)
             genocolorectal.add_gene_colorectal(gene)
-            process_variants(genocolorectal, variant) if positive_rec?(genocolorectal)
             add_variant_class(genocolorectal, record)
-            genocolorectals.append(genocolorectal)
+            if positive_rec?(genocolorectal)
+              process_variants(genocolorectals, genocolorectal, variant)
+            else
+              genocolorectals.append(genocolorectal)
+            end
           end
 
           def get_gene(record)
@@ -212,14 +217,65 @@ module Import
             false
           end
 
-          def process_variants(genocolorectal, variant)
+          def process_variants(genocolorectals, genocolorectal, variant)
+            genes = variant&.scan(COLORECTAL_GENES_REGEX)&.flatten
+
+            # For variant like "het dup GREM1 and SGC5"
+            if genes.present? && genes.all? { |gene| %w[GREM1 SCG5].include?(gene) } && variant.scan(/dup/i).size == 1
+              prepare_grem1_scg5_genos(genocolorectals, genocolorectal, variant)
+            elsif genes.size > 1
+              process_multi_genes(genocolorectals, genocolorectal, variant, genes)
+            else
+              process_mutations(genocolorectal, variant)
+              genocolorectals.append(genocolorectal)
+            end
+            genocolorectals
+          end
+
+          def prepare_grem1_scg5_genos(genocolorectals, genocolorectal, variant)
+            varianttype = variant.scan(VARIANTTYPE_REGEX)
+            genocolorectal_dup = genocolorectal.dup_colo
+            genocolorectal_dup.add_gene_colorectal('GREM1')
+            genocolorectal_dup.attribute_map['variantlocation'] = 5
+            genocolorectal_dup.add_variant_type(varianttype.join)
+            genocolorectals.append(genocolorectal_dup)
+            genocolorectal_dup = genocolorectal.dup_colo
+            genocolorectal_dup.add_gene_colorectal('SCG5')
+            genocolorectal_dup.add_variant_type(varianttype.join)
+            genocolorectals.append(genocolorectal_dup)
+          end
+
+          def process_multi_genes(genocolorectals, genocolorectal, variant, genes)
+            variant_strings = variant.split(genes[-1])
+            variant_strings << '' if variant_strings.size == 1
+            variant_strings[1].prepend(genes[-1])
+            variant_type = variant.scan(VARIANTTYPE_REGEX)
+            genocolorectal.add_variant_type(variant_type.join) unless genes.size == variant_type.size
+            process_variant_strings(genocolorectals, genocolorectal, variant_strings)
+          end
+
+          def process_variant_strings(genocolorectals, genocolorectal, variant_strings)
+            variant_strings.each do |variant_str|
+              genocolorectal_dup = genocolorectal.dup_colo
+              variant_str.scan(COLORECTAL_GENES_REGEX)
+              genocolorectal_dup.add_gene_colorectal($LAST_MATCH_INFO[:colorectal])
+              process_mutations(genocolorectal_dup, variant_str)
+              varianttype = variant_str.scan(VARIANTTYPE_REGEX)
+              if genocolorectal_dup.attribute_map['sequencevarianttype'].nil?
+                genocolorectal_dup.add_variant_type(varianttype.join)
+              end
+              genocolorectals.append(genocolorectal_dup)
+            end
+          end
+
+          def process_mutations(genocolorectal, variant)
             process_cdna_variant(genocolorectal, variant)
             process_exonic_variant(genocolorectal, variant)
             process_protein_impact(genocolorectal, variant)
           end
 
           def process_exonic_variant(genocolorectal, variant)
-            return unless variant.scan(EXON_VARIANT_REGEX).size.positive?
+            return unless variant.scan(EXON_REGEX).size.positive?
 
             genocolorectal.add_exon_location($LAST_MATCH_INFO[:exons])
             genocolorectal.add_variant_type($LAST_MATCH_INFO[:variant])

@@ -41,7 +41,8 @@ module Import
                            'RAD51C' => 3615,
                            'RAD51D' => 3616,
                            'VHL' => 83,
-                           'ATM' => 451 }.freeze
+                           'ATM' => 451,
+                           'SCG5' => 5092 }.freeze
 
         COLORECTAL_REGEX = /(?<apc>APC)|
                             (?<bmpr>BMPR1A)|
@@ -69,7 +70,8 @@ module Import
                             (?<rad51c>RAD51C)|
                             (?<rad51d>RAD51D)|
                             (?<vhl>VHL) |
-                            (?<atm>ATM)/ix # Added by Francesco
+                            (?<atm>ATM) |
+                            (?<scg5>SCG5)/ix # Added by Francesco
 
         # ------------------------ Interogators ------------------------------
 

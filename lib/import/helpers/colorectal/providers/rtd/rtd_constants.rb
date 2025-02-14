@@ -76,19 +76,12 @@ module Import
                                 ([+>_-][0-9]+[ACGTdelinsup>]+)
                                 )\]?/ix
 
-            EXON_VARIANT_REGEX = /(?<variant>del|dup|ins).+ex(?<on>on)?(?<s>s)?\s
-                                  (?<exons>[0-9]+(?<dgs>-[0-9]+)?)|
-                                ex(?<on>on)?(?<s>s)?\s?(?<exons>[0-9]+(?<dgs>-[0-9]+)?)\s?
-                                (?<variant>del|dup|ins)|
-                                (?<variant>del|dup|ins)\sexon(?<s>s)?\s
-                                (?<exons>[0-9]+(?<dgs>\sto\s[0-9]+))|
-                                ex(on)?(s)?\s?(?<exons>[0-9]+\s?(\s?-\s?[0-9]+)?)\s?
-                                (?<variant>del|dup|ins)?|
-                                (?<variant>del|dup|ins)(?<s>\s)?(?<exons>[0-9]+(?<dgs>-[0-9]+)?)|
-                                ex(?<on>on)?(?<s>s)?\s(?<exons>[0-9]+(?<dgs>\sto\s[0-9]+)?)\s
-                                (?<variant>del|dup|ins)|
-                                x(?<exons>[0-9]+-?[0-9]+)\s?(?<variant>del|dup|ins)|
-                                x(?<exons>[0-9]+-?[0-9]?)\s?(?<variant>del|dup|ins)/ix
+            EXON_REGEX = /(?<variant>del|dup|ins).+ex(on)?(s)?\s(?<exons>[0-9ACGT]+((to|and|-|\s)+[0-9ACGT]+)?)|
+                          ex(on)?(s)?\s?(?<exons>[0-9ACGT]+((to|and|-|\s)+[0-9ACGT]+)?)\s?(?<variant>del|dup|ins)|
+                          ^(?<variant>del|dup|ins)\s?(?<exons>[0-9ACGT]+((to|and|-|\s)+[0-9ACGT]+)?)|
+                          x(?<exons>[0-9ACGT]+((to|and|-|\s)+[0-9ACGT]+)?)\s?(?<variant>del|dup|ins)|
+                          ex(on)?s?\s?(?<exons>[0-9ACGT]+((to|and|-|\s)+[0-9ACGT]+)?)\s?(?<variant>del|dup|ins)?|
+                          ex(on)?(s)?\s?(?<variant>del|dup|ins)\s?(?<exons>[0-9ACGT]+((to|and|-|\s)+[0-9ACGT]+)?)?/ix
 
             PROTEIN_REGEX = /p\.[\[(]?(?<impact>([a-z]+[0-9]+[a-z]+([^[:alnum:]][0-9]+)?)|
                                    ([a-z]+[0-9]+[^[:alnum:]]))[)\]]?/ix
@@ -109,11 +102,13 @@ module Import
                                                   SMAD4|
                                                   STK11|
                                                   GREM1|
-                                                  NTHL1)/ix
+                                                  NTHL1|
+                                                  SCG5)/ix
             HNPCC = %w[MLH1 MSH2 MSH6 PMS2 EPCAM].freeze
             HNPCCMLPA = %w[MLH1 MSH2 MSH6 EPCAM].freeze
             COLORECTALCANCER = %w[APC BMPR1A EPCAM GREM1 MLH1 MSH2 MSH6 MUTYH NTHL1 PMS2
                                   POLD1 POLE PTEN SMAD4 STK11].freeze
+            VARIANTTYPE_REGEX = /delins|indel|dup|del|ins|>/ix
             FAPMAP = %w[APC MUTYH].freeze
           end
         end

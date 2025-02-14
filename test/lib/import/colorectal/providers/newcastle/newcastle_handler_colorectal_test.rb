@@ -208,6 +208,51 @@ class NewcastleHandlerColorectalTest < ActiveSupport::TestCase
     assert_equal 2804, genotypes[4].attribute_map['gene']
   end
 
+  test 'process multigene variant' do
+    brca_record = build_raw_record('pseudo_id1' => 'bob')
+    brca_record.raw_fields['genotype'] = 'EPCAM ex9-MSH2 ex2 del'
+    brca_record.raw_fields['investigation code'] = 'HNPCC'
+    @handler.add_test_scope(@genotype, brca_record)
+    @handler.add_test_status(@genotype, brca_record)
+    genotypes = @handler.process_variant_records(@genotype, brca_record)
+    assert_equal 5, genotypes.size
+    assert_equal 2744, genotypes[0].attribute_map['gene']
+    assert_equal 1, genotypes[0].attribute_map['teststatus']
+    assert_equal 2808, genotypes[1].attribute_map['gene']
+    assert_equal 1, genotypes[1].attribute_map['teststatus']
+    assert_equal 3394, genotypes[2].attribute_map['gene']
+    assert_equal 1, genotypes[2].attribute_map['teststatus']
+    assert_equal 1432, genotypes[3].attribute_map['gene']
+    assert_equal 2, genotypes[3].attribute_map['teststatus']
+    assert_equal 3, genotypes[3].attribute_map['sequencevarianttype']
+    assert_equal '9', genotypes[3].attribute_map['exonintroncodonnumber']
+    assert_equal 2804, genotypes[4].attribute_map['gene']
+    assert_equal 2, genotypes[4].attribute_map['teststatus']
+    assert_equal 3, genotypes[4].attribute_map['sequencevarianttype']
+    assert_equal '2', genotypes[4].attribute_map['exonintroncodonnumber']
+  end
+
+  test 'process GREM1 dup SCG5 variant' do
+    brca_record = build_raw_record('pseudo_id1' => 'bob')
+    brca_record.raw_fields['genotype'] = 'het dup GREM1 and SCG5'
+    brca_record.raw_fields['moleculartestingtype'] = 'Predictive'
+    brca_record.raw_fields['investigation code'] = 'HNPCC'
+
+    @handler.add_test_scope(@genotype, brca_record)
+    @handler.add_test_status(@genotype, brca_record)
+    genotypes = @handler.process_variant_records(@genotype, brca_record)
+
+    assert_equal 6, genotypes.size
+    assert_equal 1882, genotypes[4].attribute_map['gene']
+    assert_equal 2, genotypes[4].attribute_map['teststatus']
+    assert_equal 4, genotypes[4].attribute_map['sequencevarianttype']
+    assert_equal 5, genotypes[4].attribute_map['variantlocation']
+    assert_equal 5092, genotypes[5].attribute_map['gene']
+    assert_equal 2, genotypes[5].attribute_map['teststatus']
+    assert_equal 4, genotypes[5].attribute_map['sequencevarianttype']
+    assert_nil genotypes[5].attribute_map['variantlocation']
+  end
+
   private
 
   def clinical_json
