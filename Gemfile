@@ -8,7 +8,9 @@ source 'https://rubygems.org'
 
 gem 'activemodel-caution', '7.0.8' # Supports rails ~> 7.0.8.0
 gem 'rails', '~> 7.0.4', '>= 7.0.8.1'
-
+# Fixes uninitialized constant ActiveSupport::LoggerThreadSafeLevel::Logger on Rails 7.0x
+# and earlier. See https://github.com/rails/rails/issues/54260.
+gem 'concurrent-ruby', '1.3.4'
 # Use old psych for YAML on Ruby 3.1 until we move to Rails 7.0.4
 # so that we can continue to use aliases in config/locales/en.yml
 # cf. https://stackoverflow.com/questions/71191685/visit-psych-nodes-alias-unknown-alias-default-psychbadalias
