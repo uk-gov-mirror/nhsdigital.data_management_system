@@ -39,7 +39,7 @@ class SheffieldHandlerTest < ActiveSupport::TestCase
     genotypes = @handler.process_variants_from_record(@genotype, @record)
     assert_equal 1, genotypes.size
     assert_equal 2, genotypes[0].attribute_map['teststatus']
-    assert_equal 'c.520C>T', genotypes[0].attribute_map['codingdnasequencechange']
+    assert_equal 'c.[520C>T]', genotypes[0].attribute_map['codingdnasequencechange']
     assert_nil genotypes[0].attribute_map['proteinimpact']
     assert_equal 8, genotypes[0].attribute_map['gene']
   end
@@ -134,7 +134,7 @@ class SheffieldHandlerTest < ActiveSupport::TestCase
     # positive genes
     assert_equal 2, genotypes[0].attribute_map['teststatus']
     assert_nil genotypes[0].attribute_map['proteinimpact']
-    assert_equal 'c.4986+4_4986+13del', genotypes[0].attribute_map['codingdnasequencechange']
+    assert_equal 'c.[4986+4_4986+13del]', genotypes[0].attribute_map['codingdnasequencechange']
     assert_equal 7, genotypes[0].attribute_map['gene']
 
     # negative gene
@@ -177,7 +177,7 @@ class SheffieldHandlerTest < ActiveSupport::TestCase
 
     assert_equal 2, genotypes[1].attribute_map['teststatus']
     assert_equal 8, genotypes[1].attribute_map['gene']
-    assert_equal 'c.7069_7070del', genotypes[1].attribute_map['codingdnasequencechange']
+    assert_equal 'c.[7069_7070del]', genotypes[1].attribute_map['codingdnasequencechange']
     assert_equal 'p.Leu2357fs', genotypes[1].attribute_map['proteinimpact']
   end
 
@@ -251,13 +251,13 @@ class SheffieldHandlerTest < ActiveSupport::TestCase
     @handler.add_test_scope_from_geno_karyo(@genotype, malformed_mutation_fs_record)
     genotypes = @handler.process_variants_from_record(@genotype, malformed_mutation_fs_record)
     assert_equal 2, genotypes.size
-    assert_equal 4, genotypes[0].attribute_map['teststatus']
-    assert_equal 4, genotypes[1].attribute_map['teststatus']
-    assert_equal 7, genotypes[0].attribute_map['gene']
-    assert_equal 8, genotypes[1].attribute_map['gene']
+    assert_equal 2, genotypes[0].attribute_map['teststatus']
+    assert_equal 1, genotypes[1].attribute_map['teststatus']
+    assert_equal 8, genotypes[0].attribute_map['gene']
+    assert_equal 7, genotypes[1].attribute_map['gene']
     assert_nil genotypes[0].attribute_map['exonintroncodonnumber']
-    assert_nil  genotypes[0].attribute_map['proteinimpact']
-    assert_nil  genotypes[0].attribute_map['codingdnasequencechange']
+    assert_equal 'p.Gln2859fs', genotypes[0].attribute_map['proteinimpact']
+    assert_equal 'c.[8575del]', genotypes[0].attribute_map['codingdnasequencechange']
     assert_equal 'Full screen BRCA1 and BRCA2', genotypes[0].attribute_map['genetictestscope']
     assert_equal 'Full screen BRCA1 and BRCA2', genotypes[1].attribute_map['genetictestscope']
   end

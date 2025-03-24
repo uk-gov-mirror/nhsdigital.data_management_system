@@ -24,30 +24,32 @@ module Import
               'and ovarian cancer at high familial risk levels' => :process_scope_r206,
               'R207 :: Inherited ovarian cancer (without breast cancer)' => :process_scope_r207,
               'R208 :: BRCA1 and BRCA2 testing at high familial risk' => :process_scope_r208,
-              'R208 :: Inherited breast cancer and ovarian cancer' => :process_scope_r208,
+              'R208 :: Inherited breast cancer and ovarian cancer' => :process_scope_r208_new,
               'R240 - Familial Diagnostic testing - Hered Cancers' => :process_scope_r240,
-              'R242 - Predictive testing - Hered Cancers' => :process_scope_r242
+              'R242 - Predictive testing - Hered Cancers' => :process_scope_r242,
+              'R430 :: Inherited Prostate Cancer' => :process_scope_r430,
+              'R444 :: NICE approved PARP inhibitor treatment' => :process_scope_r444
             }.freeze
 
-            BRCA_FAMILIAL_GENE_MAPPING = {
-              'BRCA1 gene MLPA' => %w[BRCA1],
-              'BRCA1 gene sequencing' => %w[BRCA1],
-              'BRCA2 gene MLPA' => %w[BRCA2],
-              'BRCA2 gene sequencing' => %w[BRCA2]
-            }.freeze
+            BRCA_FAMILIAL_GENE_MAPPING = [
+              'BRCA1 gene MLPA',
+              'BRCA1 gene sequencing',
+              'BRCA2 gene MLPA',
+              'BRCA2 gene sequencing'
+            ].freeze
 
             BRCA_ANALYSIS_GENE_MAPPING_FS = {
               'BRCA1 and 2 gene sequencing' => %w[BRCA1 BRCA2],
               'Full Screen' => %w[BRCA1 BRCA2]
             }.freeze
 
-            BRCA_ANALYSIS_GENE_MAPPING_TAR = {
-              'BRCA cDNA analysis' => %w[BRCA1 BRCA2],
-              'BRCA1 gene MLPA' => %w[BRCA1],
-              'BRCA1 gene sequencing' => %w[BRCA1],
-              'BRCA2 gene MLPA' => %w[BRCA2],
-              'BRCA2 gene sequencing' => %w[BRCA2]
-            }.freeze
+            BRCA_ANALYSIS_GENE_MAPPING_TAR = [
+              'BRCA cDNA analysis',
+              'BRCA1 gene MLPA',
+              'BRCA1 gene sequencing',
+              'BRCA2 gene MLPA',
+              'BRCA2 gene sequencing'
+            ].freeze
 
             OVRN_CNCR_PNL_GENE_MAPPING = {
               'BRCA1  BRCA2 & TP53' => %w[BRCA1 BRCA2 TP53],
@@ -85,11 +87,10 @@ module Import
                                                                           STK11 TP53]
             }.freeze
 
-            R205_GENE_MAPPING_TAR = {
-              'R242.1 :: Predictive testing' => %w[ATM BRCA1 BRCA2 CDH1 CHEK2 PALB2 PTEN STK11
-                                                   TP53],
-              'R242.1 :: Predictive - MLPA' => %w[BRCA1 BRCA2 TP53]
-            }.freeze
+            R205_GENE_MAPPING_TAR = [
+              'R242.1 :: Predictive testing',
+              'R242.1 :: Predictive - MLPA'
+            ].freeze
 
             R206_GENE_MAPPING = {
               'R206.1 :: Unknown mutation(s) by Small panel' => %w[ATM BRCA1 BRCA2 BRIP1 CDH1
@@ -117,38 +118,68 @@ module Import
               'R387.1 :: NGS analysis only' => %w[BRCA1 BRCA2 BRIP1 EPCAM MLH1 MSH2
                                                   MSH6 PALB2 RAD51C RAD51D PMS2],
               'R207.1 :: NGS in Leeds' => %w[BRCA1 BRCA2 BRIP1 EPCAM MLH1 MSH2
-                                             MSH6 PALB2 RAD51C RAD51D PMS2]
+                                             MSH6 PALB2 RAD51C RAD51D PMS2],
+              'R207.1 :: NGS in Leeds - Send DNA to Leeds' => %w[BRCA1 BRCA2 BRIP1 EPCAM MLH1 MSH2
+                                                                 MSH6 PALB2 RAD51C RAD51D PMS2]
             }.freeze
 
-            R207_GENE_MAPPING_TAR = {
-              'R240.1 :: Diagnostic familial' => %w[BRCA1 BRCA2 BRIP1 EPCAM MLH1
-                                                    MSH2 MSH6 PALB2 RAD51C RAD51D PMS2],
-              'R242.1 :: Predictive testing' => %w[BRCA1 BRCA2 BRIP1 EPCAM MLH1
-                                                   MSH2 MSH6 PALB2 RAD51C RAD51D PMS2]
-            }.freeze
+            R207_GENE_MAPPING_TAR = [
+              'R240.1 :: Diagnostic familial',
+              'R242.1 :: Predictive testing',
+              'R242.1 :: Predictive testing - Seq in Leeds - Send Blood',
+              'R242.1 :: Predictive testing - Seq in Leeds - Send DNA',
+              'R242.1 :: Predictive testing - MLPA in Leeds - Send Blood'
+            ].freeze
 
             R208_GENE_MAPPING_FS = {
               'R208.1 :: Unknown mutation(s) by Single gene sequencing' => %w[BRCA1 BRCA2 PALB2],
               'R208.2 :: Unknown mutation(s) by MLPA or equivalent' => %w[BRCA1 BRCA2],
               'R387.1 :: BRCA1 BRCA2 PALB2 analysis only' => %w[BRCA1 BRCA2 PALB2],
               'R208.1 :: NGS in Leeds' => %w[BRCA1 BRCA2 PALB2],
-              'R208.1 :: PALB2 - NGS in Leeds - Analysis only' => %w[BRCA1 BRCA2 PALB2]
+              'R208.1 :: PALB2 - NGS in Leeds - Analysis only' => %w[PALB2]
             }.freeze
 
-            R208_GENE_MAPPING_TAR = {
-              'R242.1 :: Predictive testing' => %w[BRCA1 BRCA2 PALB2],
-              'R242.1 :: Predictive testing MLPA' => %w[BRCA1 BRCA2],
-              'R240.1 :: Diagnostic familial' => %w[BRCA1 BRCA2 PALB2],
-              'R240.1 :: Diagnostic Familial BRCA1 MLPA' => %w[BRCA1],
-              'R370.1 :: Confirmation of research result' => %w[BRCA1 BRCA2 PALB2]
+            R208_GENE_MAPPING_TAR = [
+              'R242.1 :: Predictive testing',
+              'R242.1 :: Predictive testing MLPA',
+              'R240.1 :: Diagnostic familial',
+              'R240.1 :: Diagnostic Familial BRCA1 MLPA',
+              'R370.1 :: Confirmation of research result'
+            ].freeze
+
+            R208_GENE_MAPPING_FS_NEW = {
+              'R208.1 :: NGS in Leeds' => %w[ATM BRCA1 BRCA2 CHEK2 PALB2],
+              'R208.1 :: NGS in Leeds - Send DNA to Leeds' => %w[ATM BRCA1 BRCA2 CHEK2 PALB2],
+              'R208.1 :: PALB2 - NGS in Leeds - Analysis only' => %w[PALB2],
+              'R387.1 :: BRCA1 BRCA2 PALB2 analysis only' => %w[BRCA1 BRCA2 PALB2]
             }.freeze
 
-            R240_GENE_MAPPING_TAR = {
-              'R242.1 :: Familial diagnostic testing - ATM gene' => %w[ATM]
+            R208_GENE_MAPPING_TAR_NEW = [
+              'R240.1 :: Diagnostic familial - Seq in Leeds - Send Blood',
+              'R242.1 :: Predictive testing',
+              'R242.1 :: Predictive testing - MLPA in Leeds - Send Blood',
+              'R242.1 :: Predictive testing - Seq in Leeds - Analysis only',
+              'R242.1 :: Predictive testing - Seq in Leeds - Send Blood',
+              'R242.1 :: Predictive testing - Seq in Leeds - Send DNA',
+              'R242.1 :: Predictive testing - Seq in Sheffield',
+              'R242.1 :: Predictive testing MLPA'
+            ].freeze
+
+            R240_GENE_MAPPING_TAR = [
+              'R242.1 :: Familial diagnostic testing - ATM gene'
+            ].freeze
+
+            R242_GENE_MAPPING_TAR = [
+              'R242.1 :: Predictive testing - ATM gene'
+            ].freeze
+
+            R430_GENE_MAPPING_FS = {
+              'R420.1 :: NGS in Leeds - Send Blood' => %w[ATM BRCA1 BRCA2 CHEK2 MLH1 MSH2 MSH6 PALB2]
             }.freeze
 
-            R242_GENE_MAPPING_TAR = {
-              'R242.1 :: Predictive testing - ATM gene' => %w[ATM]
+            R444_GENE_MAPPING = {
+              'R444.1 :: PARPi for Breast cancer - NGS in Leeds' => %w[ATM BRCA1 BRCA2 CHEK2 PALB2 RAD51C RAD51D],
+              'R444.2 :: PARPi for Prostate Cancer - NGS in Leeds send DNA to Leeds' => %w[BRCA1 BRCA2]
             }.freeze
 
             PASS_THROUGH_FIELDS = %w[consultantcode
@@ -173,33 +204,46 @@ module Import
                               'R224 :: Inherited renal cancer',
                               'R365 :: Fumarate hydratase-related tumour syndromes'].freeze
 
+            GENES_LIST = %w[ATM BRCA1 BRCA2 BRIP1 CDH1 CHEK2 EPCAM
+                            MLH1 MSH2 MSH6 NBN PALB2 PTEN RAD51C RAD51D
+                            STK11 TP53 PMS2 ].freeze
+
             BRCA_REGEX = /(?<brca>BRCA1|BRCA2|PALB2|ATM|CHEK2|TP53|MLH1|CDH1|
-                          MSH2|MSH6|PMS2|STK11|PTEN|BRIP1|NBN|RAD51C|RAD51D)/ix
+                          MSH2|MSH6|PMS2|STK11|PTEN|BRIP1|NBN|RAD51C|RAD51D|EPCAM)/ix
 
             # rubocop:disable Lint/MixedRegexpCaptureTypes
-            CDNA_REGEX = /c\.\[?(?<cdna>
-                                ([0-9]+[+>_-][0-9][+>_-][0-9]+[+>_-][0-9][ACGTdelinsup]+)|
-                                ([0-9]+[+>_-][0-9][+>_-][0-9]+[+>_-][0-9]+[ACGTdelinsup]+)|
-                                ([0-9]+[+>_-][0-9]+[ACGTdelinsup][+>_-][ACGTdelinsup])|
-                                ([0-9]+[ACGTdelinsup]+[+>_-][ACGTdelinsup])|
-                                ([0-9]+[+>_-][0-9]+[ACGTdelinsup]+)|
-                                ([0-9]+[+>_-][0-9]+[+>_-][0-9]+[0-9]+[ACGTdelinsup]+)|
-                                ([0-9]+[?+>_-]+[0-9]+[?+>_-]+[ACGTdelinsup]+)|
-                                ([0-9]+[ACGTdelinsup]+)
-                                )\]?/ix
+            CDNA_REGEX = /((c(\.)?-?\*?(?<cdna>
+            (\[[0-9]+[+>_-][0-9][+>_-][0-9]+[+>_-][0-9][ACGTdelinsup]+\])|
+                                (\[[0-9]+[+>_-][0-9]+[+>_-][0-9]+[+>_-][0-9]+[ACGTdelinsup]+\])|
+                                (\[[0-9]+[+>_-][0-9]+[ACGTdelinsup][+>_-][ACGT]+\])|
+                                (\[[0-9]+[ACGTdelinsup]+[+>_-][ACGT]+\])|
+                                (\[[0-9]+[+>_-][0-9]+[ACGTdelinsup]+\])|
+                                (\[[0-9]+[+>_-][0-9]+[+>_-][0-9]+[ACGTdelinsup]+\])|
+                                (\[[0-9]+[?+>_-]+[0-9]+[?+>_-]+[ACGT]+\])|
+                                (\[[0-9]+[ACGTdelinsup]+\]))) |
+                          (c\.-?\*?(?<cdna>
+                                ((\[)?[0-9]+[+>_-][0-9][+>_-][0-9]+[+>_-][0-9][ACGTdelinsup]+(\])?)|
+                                ((\[)?[0-9]+[+>_-][0-9]+[+>_-][0-9]+[+>_-][0-9]+[ACGTdelinsup]+(\])?)|
+                                ((\[)?[0-9]+[+>_-][0-9]+[ACGTdelinsup][+>_-][ACGT]+(\])?)|
+                                ((\[)?[0-9]+[ACGTdelinsup]+[+>_-][ACGT]+(\])?)|
+                                ((\[)?[0-9]+[+>_-][0-9]+[ACGTdelinsup]+(\])?)|
+                                ((\[)?[0-9]+[+>_-][0-9]+[+>_-][0-9]+[ACGTdelinsup]+(\])?)|
+                                ((\[)?[0-9]+[?+>_-]+[0-9]+[?+>_-]+[ACGT]+(\])?)|
+                                ((\[)?[0-9]+[ACGTdelinsup]+(\])?)))
+                                )/ix
 
             MLPA_FAIL_REGEX = /#{BRCA_REGEX}\s(?<mlpa>MLPA?\sfail)+/ix
 
-            PROTEIN_REGEX = /p\.(\[\()?(?<impact>.([a-z]+[0-9]+[a-z]+([^[:alnum:]][0-9]+)?)|
-                                   ([a-z]+[0-9]+[^[:alnum:]]))(\)\])?/ix
+            PROTEIN_REGEX = /(p(\.|\[)(\[)?(\()?(?<impact>([a-z]+[0-9]+[a-z]+([^[:alnum:]][0-9]+)?)|
+                            ([a-z]+[0-9]+[^[:alnum:]]([a-z]+[0-9]+[delinsup]+)?)))/ix
 
             EXON_VARIANT_REGEX = /((?<zygosity>het|homo)[a-z ]+)?
                                   (?<mutationtype>deletion|duplication|duplicated)\s?
                                   ([a-z 0-9]+(?<nm>exon|exons)\s
-                                  (?<exons>[0-9]+((to|and|-|\s)+[0-9]+)?))|
+                                  (?<exons>[0-9]+((to|_|and|&|-|\s)+[0-9]+)?))|
                                   ((?<zygosity>het|homo)[a-z ]+)?
-                                  (?<nm>exon|exons)\s(?<exons>[0-9]+((to|and|-|\s)+[0-9]+)?)
-                                  ([a-z ]+(?<mutationtype>deletion|duplication|duplicated))?/ix
+                                  (?<nm>exon|exons|ex)\s?(?<exons>[0-9]+((to|_|and|&|-|\s)+[0-9]+)?)
+                                  ([a-z\s]+(?<mutationtype>del(etion)?|duplicati?on|dup(licated)?))?/ix
 
             NORMAL_VAR_REGEX = %r{(?<not>no|not)[a-z /]+
                                   (?<det>detect|report|detet|mutation)+}ix
