@@ -1,5 +1,4 @@
 require 'possibly'
-require 'pry'
 
 module Import
   module Brca
@@ -11,7 +10,10 @@ module Import
           PASS_THROUGH_FIELDS = %w[age sex consultantcode collecteddate
                                    receiveddate authoriseddate servicereportidentifier
                                    providercode receiveddate sampletype].freeze
-          CDNA_REGEX = /c\.(?<cdna>[0-9]+[^\s)]+)|c\.\[(?<cdna>.*?)\]/i.freeze
+
+          CDNA_REGEX = /c\.(?<cdna>[0-9]+[^\s)]+)|
+                          c\.\[(?<cdna>.*?)\]|
+                          c\.\*?\s?(?<cdna>[0-9]+[^\s)]+)/ix.freeze
 
           PROTEIN_REGEX = /p\.(?<impact>[a-z]+[0-9]+[a-z]+)|
                            p\.(?<sqrbo>\[)?(?<rndbo>\()?(?<impact>[a-z]+[0-9]+[a-z]+)
@@ -22,7 +24,8 @@ module Import
                                         'BRCA 1' => 'BRCA1',
                                         'BR2'    => 'BRCA2',
                                         'B2'     => 'BRCA2',
-                                        'BRCA 2' => 'BRCA2' }.freeze
+                                        'BRCA 2' => 'BRCA2',
+                                        'Br2'    => 'BRCA2' }.freeze
 
           BRCA_GENES_REGEX = /(?<brca>BRCA1|
                                      BRCA2|
@@ -39,19 +42,20 @@ module Import
                                      SMARCB1|
                                      LZTR1)/xi.freeze
 
-          EXON_VARIANT_REGEX = /(?<variant>del|dup|ins).+ex(?<on>on)?(?<s>s)?\s
-                                (?<exons>[0-9]+(?<dgs>-[0-9]+)?)|
-                              ex(?<on>on)?(?<s>s)?\s(?<exons>[0-9]+(?<dgs>-[0-9]+)?)\s
-                              (?<variant>del|dup|ins)|
-                              (?<variant>del|dup|ins)\sexon(?<s>s)?\s
-                              (?<exons>[0-9]+(?<dgs>\sto\s[0-9]+))|
-                              (?<variant>del|dup|ins)(?<s>\s)?(?<exons>[0-9]+(?<dgs>-[0-9]+)?)|
-                              ex(?<on>on)?(?<s>s)?\s(?<exons>[0-9]+(?<dgs>\sto\s[0-9]+)?)\s
-                              (?<variant>del|dup|ins)/ix.freeze
+          EXON_VARIANT_REGEX = /(?<variant>del|dup|ins).+ex(?<on>on)?(?<s>s)?\s(?<exons>[0-9]+(?<dgs>-[0-9]+)?)|
+                                ex(?<on>on)?(?<s>s)?\s(?<exons>[0-9]+(?<dgs>-[0-9]+)?)\s(?<variant>del|dup|ins)|
+                                (?<variant>del|dup|ins)\sexon(?<s>s)?\s(?<exons>[0-9]+(?<dgs>\sto\s[0-9]+))|
+                                (?<variant>del|dup|ins)(?<s>\s)?(?<exons>[0-9]+(?<dgs>-[0-9]+)?)|
+                                ex(?<on>on)?(?<s>s)?\s?(?<exons>[0-9]+(?<dgs>\sto\s[0-9]+)?)\s(?<variant>del|dup|ins)|
+                                (?<variant>dup|del|ins)\s?(x|ex|exon)\s?(?<exons>[0-9]+(-|_)[0-9]+)|
+                                (?<variant>ivs.*-ivs.*del|dup|ins)(?<exon>~?[0-9]+)|
+                                (?<variant>dup|del|ins)\s?(ex|x)\s?(?<exons>[0-9]+)|
+                                (x|ex|exon)\s?(?<exons>[0-9]+(-|_)[0-9]+)\s(?<variant>dup|del|ins)/ix.freeze
 
           DEPRECATED_BRCA_NAMES_REGEX = /B1|BR1|BRCA\s1|B2|BR2|BRCA\s2/i.freeze
 
           DELIMETER_REGEX = /[&\n+,;]|and|IFD/i.freeze
+
 
           def process_fields(record)
             # records using new importer should only have SRIs starting with D
@@ -148,6 +152,10 @@ module Import
               else
                 single_variant_full_screen(genotype, genotypes, positive_genes, record)
               end
+            elsif ucs_variant?(record)
+              record_basic_full_screen_ucs(genotype, genotypes, positive_genes, record)
+            else
+              unknown_status(genotype, genotypes, positive_genes, record)
             end
             genotypes
           end
@@ -189,6 +197,10 @@ module Import
               process_failed_targeted(genotype, record, genotypes)
             elsif positive_cdna?(record) || positive_exonvariant?(record)
               process_positive_targeted(record, positive_genes, genotype, genotypes)
+            elsif ucs_variant?(record)
+              record_basic_targeted_ucs(genotype, genotypes, record)
+            else
+              unknown_status(genotype, genotypes, positive_genes, record)
             end
             genotypes
           end
@@ -214,6 +226,49 @@ module Import
               process_single_protein(genotype, record)
               genotypes.append(genotype)
             end
+          end
+
+          def record_basic_full_screen_ucs(genotype, genotypes, positive_genes, _record)
+            # record with just a gene and 'UCS' - no specific variant mentioned but we know it should be teststatus 10
+            if positive_genes.size == 1
+              process_single_ucs_gene(positive_genes, genotype, genotypes)
+            elsif positive_genes.size > 1
+              positive_genes.each do |gene|
+                genotype.add_gene(gene)
+                genotype.add_status(10)
+                genotypes.append(genotype)
+              end
+            else
+              create_empty_brca_tests(genotype, genotypes)
+            end
+          end
+
+          def process_single_ucs_gene(positive_genes, genotype, genotypes)
+            negative_gene = %w[BRCA1 BRCA2] - positive_genes
+            genotype_dup = genotype.dup
+            genotype_dup.add_gene(negative_gene.join)
+            genotype_dup.add_status(1)
+            genotypes.append(genotype_dup)
+            genotype.add_gene(positive_genes.join)
+            genotype.add_status(10)
+            genotypes.append(genotype)
+          end
+
+          def record_basic_targeted_ucs(genotype, genotypes, record)
+            process_single_gene(genotype, record)
+            genotype.add_status(10)
+            genotypes.append(genotype)
+          end
+
+          def unknown_status(genotype, genotypes, positive_genes, record)
+            # where there is nothing definitive written in the genotype field but there may be a gene
+            if ashkenazi?(record) || polish?(record) || full_screen?(record)
+              create_empty_brca_tests(genotype, genotypes)
+            else
+              genotype.add_gene(positive_genes.join) if !positive_genes.nil?
+              genotype.add_status(4) 
+              genotypes.append(genotype)
+            end           
           end
 
           # Ordering here is important so duplicate branches are required
@@ -270,11 +325,37 @@ module Import
               variants = process_multi_genes_rec(record, positive_genes)
             elsif positive_genes.flatten.uniq.size == 1
               variants = process_uniq_gene_rec(record, positive_genes)
+            elsif positive_genes.empty?
+              process_multi_variants_no_gene(record, genotype, genotypes)
             end
-
             add_variants_multiple_results(variants, genotype, genotypes) unless variants.nil?
-
             genotypes
+          end
+
+          def ucs_variant?(record)
+            record.raw_fields['genotype'].scan(/ucs/i).size.positive?
+          end   
+
+          def process_multi_variants_no_gene(record, genotype, genotypes)    
+            return if record.raw_fields['genotype'].nil?
+
+            raw_genotypes = record.raw_fields['genotype'].scan(CDNA_REGEX).flatten.compact
+            raw_genotypes.each do |raw_genotype|
+              genotype_dup = genotype.dup
+              genotype_dup.add_gene_location(raw_genotype) unless raw_genotype.nil?
+              ucs_variant?(record) ? genotype_dup.add_status(10) : genotype_dup.add_status(2)
+              genotypes.append(genotype_dup)
+            end
+            create_empty_brca_tests(genotype, genotypes) if full_screen?(record)         
+          end
+
+          def create_empty_brca_tests(genotype, genotypes)
+            %w[BRCA1 BRCA2].each do |fs_gene|
+             genotype_dup = genotype.dup
+             genotype_dup.add_gene(fs_gene)
+             genotype_dup.add_status(4)
+             genotypes.append(genotype_dup)
+            end
           end
 
           def process_multi_genes_rec(record, positive_genes)
@@ -360,7 +441,7 @@ module Import
 
             genotype.add_exon_location($LAST_MATCH_INFO[:exons])
             genotype.add_variant_type($LAST_MATCH_INFO[:variant])
-            genotype.add_status(2)
+            ucs_variant?(record) ? genotype.add_status(10) : genotype.add_status(2)
             @logger.debug "SUCCESSFUL exon variant parse for: #{record.raw_fields['genotype']}"
             # end
           end
@@ -369,7 +450,7 @@ module Import
             return unless record.raw_fields['genotype'].scan(CDNA_REGEX).size.positive?
 
             genotype.add_gene_location($LAST_MATCH_INFO[:cdna])
-            genotype.add_status(2)
+            ucs_variant?(record) ? genotype.add_status(10) : genotype.add_status(2)
             @logger.debug "SUCCESSFUL cdna change parse for: #{$LAST_MATCH_INFO[:cdna]}"
             # end
           end
@@ -382,7 +463,7 @@ module Import
           def normal?(record)
             variant = record.raw_fields['genotype']
             moltesttype = record.raw_fields['moleculartestingtype']
-            variant.scan(%r{NO PATHOGENIC|Normal|N/N|NOT DETECTED}i).size.positive? ||
+            variant.scan(%r{NO PATHOGENIC|Normal|N/N|NOT DETECTED|FALSE POSITIVE| N$}i).size.positive? ||
               variant == 'N' || moltesttype.scan(/unaffected/i).size.positive?
           end
 
@@ -434,7 +515,8 @@ module Import
             return if record.raw_fields['moleculartestingtype'].nil?
 
             record.raw_fields['moleculartestingtype'].empty? ||
-              record.raw_fields['moleculartestingtype'] == 'Store'
+              record.raw_fields['moleculartestingtype'] == 'Store' ||
+              record.raw_fields['moleculartestingtype'] == 'Reclassification of previous result'
           end
         end
         # rubocop:enable Metrics/ClassLength

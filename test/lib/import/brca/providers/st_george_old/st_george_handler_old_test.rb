@@ -7,7 +7,6 @@ class StGeorgeHandlerOldTest < ActiveSupport::TestCase
     @importer_stdout, @importer_stderr = capture_io do
       @handler = Import::Brca::Providers::StGeorgeOld::StGeorgeHandlerOld.new(EBatch.new)
     end
-    @logger = Import::Log.get_logger
   end
 
   test 'process_fields' do
@@ -50,7 +49,6 @@ class StGeorgeHandlerOldTest < ActiveSupport::TestCase
     void_record = build_raw_record('pseudo_id1' => 'bob')
     void_record.raw_fields['moleculartestingtype'] = ''
     assert_equal true, @handler.void_genetictestscope?(void_record)
-    @logger.expects(:debug).with('Unknown moleculartestingtype')
     @handler.process_genetictestcope(@genotype, void_record)
     assert_equal 'Unable to assign BRCA genetictestscope', @genotype.attribute_map['genetictestscope']
 
@@ -81,6 +79,7 @@ class StGeorgeHandlerOldTest < ActiveSupport::TestCase
     assert_equal true, @handler.targeted_test?(targeted_record)
     @handler.process_genetictestcope(@genotype, targeted_record)
     assert_equal 'Targeted BRCA mutation test', @genotype.attribute_map['genetictestscope']
+  
 
     full_screen_record = build_raw_record('pseudo_id1' => 'bob')
     full_screen_record.raw_fields['moleculartestingtype'] = 'Full Screen'
@@ -96,29 +95,71 @@ class StGeorgeHandlerOldTest < ActiveSupport::TestCase
   end
 
   test 'process_single_record' do
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for BRCA2')
-    @logger.expects(:debug).with('SUCCESSFUL cdna change parse for: 6165_6166delAA')
-    @logger.expects(:debug).with('FAILED protein parse for: BR2 c.6165_6166delAA')
     @handler.process_variants_from_record(@genotype, @record)
     assert_equal 2, @genotype.attribute_map['teststatus']
     assert_equal 'c.6165_6166del', @genotype.attribute_map['codingdnasequencechange']
+    assert_equal 8, @genotype.attribute_map['gene']
     fullscreen_record = build_raw_record('pseudo_id1' => 'bob')
     fullscreen_record.raw_fields['moleculartestingtype'] = 'Full Screen'
     assert_equal true, @handler.full_screen?(fullscreen_record)
+
     # Test for full screen record
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for BRCA1')
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for BRCA2')
-    @logger.expects(:debug).with('SUCCESSFUL cdna change parse for: 6165_6166delAA')
-    @logger.expects(:debug).with('FAILED protein parse for: BR2 c.6165_6166delAA')
     variants = @handler.process_variants_from_record(@genotype, fullscreen_record)
     assert_equal 2, variants.size
     assert_equal 1, variants[0].attribute_map['teststatus']
     assert_equal 2, variants[1].attribute_map['teststatus']
+    assert_equal 7, variants[0].attribute_map['gene']
+    assert_equal 8, variants[1].attribute_map['gene']
+    assert_equal 'c.6165_6166del', variants[1].attribute_map['codingdnasequencechange']
+    assert_nil(variants[1].attribute_map['proteinimpact'])
+
     broken_record = build_raw_record('pseudo_id1' => 'bob')
     broken_record.raw_fields['genotype'] = 'Cabbage'
-    @logger.expects(:debug).with('Unable to extract gene')
     variants = @handler.process_variants_from_record(@genotype, broken_record)
     assert true, variants.empty?
+    
+    # UCS full screen variant
+    full_screen_ucs_record = build_raw_record('pseudo_id1' => 'bob')
+    full_screen_ucs_record.raw_fields['moleculartestingtype'] = 'Full Screen'
+    full_screen_ucs_record.raw_fields['genotype'] = 'BR2 UCS'
+    variants = @handler.process_variants_from_record(@genotype, full_screen_ucs_record)
+    assert_equal 2, variants.size
+    assert_equal 1, variants[0].attribute_map['teststatus']
+    assert_equal 10, variants[1].attribute_map['teststatus']
+    assert_equal 7, variants[0].attribute_map['gene']
+    assert_equal 8, variants[1].attribute_map['gene']
+
+    # UCS full screen variant wirh 2 genes
+    full_screen_ucs_record_2_genes = build_raw_record('pseudo_id1' => 'bob')
+    full_screen_ucs_record_2_genes.raw_fields['moleculartestingtype'] = 'Full Screen'
+    full_screen_ucs_record_2_genes.raw_fields['genotype'] = 'BR1 BR2 UCS'
+    variants = @handler.process_variants_from_record(@genotype, full_screen_ucs_record_2_genes)
+    assert_equal 2, variants.size
+    assert_equal 10, variants[1].attribute_map['teststatus']
+    assert_equal 8, variants[1].attribute_map['gene']
+
+    # UCS full screen variant with no gene
+    full_screen_ucs_record_no_gene = build_raw_record('pseudo_id1' => 'bob')
+    full_screen_ucs_record_no_gene.raw_fields['moleculartestingtype'] = 'Full Screen'
+    full_screen_ucs_record_no_gene.raw_fields['genotype'] = 'UCS'
+    variants = @handler.process_variants_from_record(@genotype, full_screen_ucs_record_no_gene)
+    assert_equal 2, variants.size
+    assert_equal 4, variants[0].attribute_map['teststatus']
+    assert_equal 4, variants[1].attribute_map['teststatus']
+    assert_equal 7, variants[0].attribute_map['gene']
+    assert_equal 8, variants[1].attribute_map['gene']
+
+
+    # #test unknown status for full screen
+    unknown_test_status_fs_record = build_raw_record('pseudo_id1' => 'bob')
+    unknown_test_status_fs_record.raw_fields['moleculartestingtype'] = 'Full Screen'
+    unknown_test_status_fs_record.raw_fields['genotype'] = 'M'
+    variants = @handler.process_variants_from_record(@genotype, unknown_test_status_fs_record)
+    assert_equal 2, variants.size
+    assert_equal 4, variants[0].attribute_map['teststatus']
+    assert_equal 4, variants[0].attribute_map['teststatus']
+    assert_equal 7, variants[0].attribute_map['gene']
+    assert_equal 8, variants[1].attribute_map['gene']
   end
 
   test 'process_multiple_cdnavariants' do
@@ -132,6 +173,61 @@ class StGeorgeHandlerOldTest < ActiveSupport::TestCase
     assert_equal 8, variants[1].attribute_map['gene']
     assert_equal 'c.666A>G', variants[0].attribute_map['codingdnasequencechange']
     assert_equal 'c.6275_6276del', variants[1].attribute_map['codingdnasequencechange']
+  end
+
+  test 'record_basic_full_screen_ucs' do
+    full_screen_ucs_record = build_raw_record('pseudo_id1' => 'bob')
+    full_screen_ucs_record.raw_fields['genotype'] = 'BR2 UCS'
+    full_screen_ucs_record.raw_fields['moleculartestingtype'] = 'Full Screen' 
+    variants = @handler.process_variants_from_record(@genotype, full_screen_ucs_record)
+    assert_equal 2, variants.size
+    assert_equal 1, variants[0].attribute_map['teststatus']
+    assert_equal 10, variants[1].attribute_map['teststatus']
+    assert_equal 7, variants[0].attribute_map['gene']
+    assert_equal 8, variants[1].attribute_map['gene']
+  end
+
+  test 'record_basic_targeted_ucs' do 
+    targeted_ucs_record = build_raw_record('pseudo_id1' => 'bob')
+    targeted_ucs_record.raw_fields['genotype'] = 'BR2 UCS'
+    genotypes=[]
+    variants = @handler.record_basic_targeted_ucs(@genotype,genotypes, targeted_ucs_record)
+    assert_equal 1, variants.size
+    assert_equal 10, variants[0].attribute_map['teststatus']
+    assert_equal 8, variants[0].attribute_map['gene'] 
+  end 
+
+  test 'unknown_status' do 
+    unknown_test_status_targeted = build_raw_record('pseudo_id1' => 'bob')
+    unknown_test_status_targeted.raw_fields['moleculartestingtype'] = 'Targeted'
+    unknown_test_status_targeted.raw_fields['genotype'] = 'BR2 M'
+    positive_genes=['BRCA2']    
+    genotypes=[]
+    variants_targ = @handler.unknown_status(@genotype, genotypes, positive_genes, unknown_test_status_targeted)
+    assert_equal 1, variants_targ.size
+    assert_equal 4, variants_targ[0].attribute_map['teststatus']
+    assert_equal 8, variants_targ[0].attribute_map['gene']
+
+    unknown_test_status_fs = build_raw_record('pseudo_id1' => 'bob')
+    unknown_test_status_fs.raw_fields['moleculartestingtype'] = 'Full Screen'
+    unknown_test_status_fs.raw_fields['genotype'] = 'M'
+    positive_genes=[]
+    genotypes=[]
+    variants_fs = @handler.unknown_status(@genotype, genotypes, positive_genes, unknown_test_status_fs)
+    assert_equal 2, variants_fs.size  
+  end
+
+  test 'process_multi_variants_no_gene' do
+    multiple_cdnavariants_record_no_gene_record = build_raw_record('pseudo_id1' => 'bob')
+    multiple_cdnavariants_record_no_gene_record.raw_fields['genotype'] = 'c.5266dup c.1258G>T'
+    variants = @handler.process_variants_from_record(@genotype, multiple_cdnavariants_record_no_gene_record)
+    assert_equal 2, variants.size
+    assert_equal 2, variants[0].attribute_map['teststatus']
+    assert_equal 2, variants[1].attribute_map['teststatus']
+    assert_nil(variants[0].attribute_map['gene'])
+    assert_nil(variants[1].attribute_map['gene'])
+    assert_equal 'c.5266dup', variants[0].attribute_map['codingdnasequencechange']
+    assert_equal 'c.1258G>T', variants[1].attribute_map['codingdnasequencechange']
   end
 
   test 'process_multiple_cdnavariants_protein_for_same_gene' do
@@ -151,8 +247,6 @@ class StGeorgeHandlerOldTest < ActiveSupport::TestCase
   test 'process_multiple_cdnavariants_for_same_gene' do
     multiple_cdnavariants_record = build_raw_record('pseudo_id1' => 'bob')
     multiple_cdnavariants_record.raw_fields['genotype'] = 'BR1 c.3052ins5 (c.3048dupTGAGA)'
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for BRCA1')
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for BRCA1')
     variants = @handler.process_variants_from_record(@genotype, multiple_cdnavariants_record)
     assert_equal 2, variants.size
     assert_equal 2, variants[0].attribute_map['teststatus']
@@ -192,9 +286,6 @@ class StGeorgeHandlerOldTest < ActiveSupport::TestCase
   test 'process_single_exonvariant' do
     single_exon_variant_record = build_raw_record('pseudo_id1' => 'bob')
     single_exon_variant_record.raw_fields['genotype'] = 'Dup 13 BR1'
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for BRCA1')
-    @logger.expects(:debug).with('SUCCESSFUL exon variant parse for: Dup 13 BR1')
-    @logger.expects(:debug).with('FAILED protein parse for: Dup 13 BR1')
     @handler.process_variants_from_record(@genotype, single_exon_variant_record)
     assert_equal 2, @genotype.attribute_map['teststatus']
     assert_equal '13', @genotype.attribute_map['exonintroncodonnumber']
@@ -203,10 +294,6 @@ class StGeorgeHandlerOldTest < ActiveSupport::TestCase
     fullscreen_exon_variant_record.raw_fields['moleculartestingtype'] = 'Full Screen'
     fullscreen_exon_variant_record.raw_fields['genotype'] = 'Dup 13 BR1'
     assert_equal true, @handler.full_screen?(fullscreen_exon_variant_record)
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for BRCA2')
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for BRCA1')
-    @logger.expects(:debug).with('SUCCESSFUL exon variant parse for: Dup 13 BR1')
-    @logger.expects(:debug).with('FAILED protein parse for: Dup 13 BR1')
     variants = @handler.process_variants_from_record(@genotype, fullscreen_exon_variant_record)
     assert_equal 1, variants[0].attribute_map['teststatus']
     assert_equal 8, variants[0].attribute_map['gene']
@@ -217,22 +304,16 @@ class StGeorgeHandlerOldTest < ActiveSupport::TestCase
   test 'process_failed_record' do
     failed_record_nogene = build_raw_record('pseudo_id1' => 'bob')
     failed_record_nogene.raw_fields['genotype'] = 'Failed'
-    @logger.expects(:debug).with('Unable to extract gene')
-    @logger.expects(:debug).with('FAILED gene parse for: Failed')
     @handler.process_variants_from_record(@genotype, failed_record_nogene)
     assert_equal 9, @genotype.attribute_map['teststatus']
     failed_record_gene = build_raw_record('pseudo_id1' => 'bob')
     failed_record_gene.raw_fields['genotype'] = 'Failed BR1'
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for BRCA1')
     @handler.process_variants_from_record(@genotype, failed_record_gene)
     assert_equal 9, @genotype.attribute_map['teststatus']
     assert_equal 7, @genotype.attribute_map['gene']
     fullscreen_failed_record = build_raw_record('pseudo_id1' => 'bob')
     fullscreen_failed_record.raw_fields['genotype'] = 'Failed'
     fullscreen_failed_record.raw_fields['moleculartestingtype'] = 'Full Screen'
-    @logger.expects(:debug).with('Unable to extract gene')
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for BRCA1')
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for BRCA2')
     variants = @handler.process_variants_from_record(@genotype, fullscreen_failed_record)
     assert_equal 2, variants.size
     assert_equal 9, variants[0].attribute_map['teststatus']
@@ -245,17 +326,12 @@ class StGeorgeHandlerOldTest < ActiveSupport::TestCase
     no_gene_normal_genotype_record = build_raw_record('pseudo_id1' => 'bob')
     no_gene_normal_genotype_record.raw_fields['genotype'] = 'Normal'
     assert_equal true, @handler.normal?(no_gene_normal_genotype_record)
-    @logger.expects(:debug).with('Unable to extract gene')
-    @logger.expects(:debug).with('FAILED gene parse for: Normal')
     @handler.process_variants_from_record(@genotype, no_gene_normal_genotype_record)
     assert_equal 1, @genotype.attribute_map['teststatus']
     assert_nil(@genotype.attribute_map['gene'])
     normal_genotype_record_with_gene = build_raw_record('pseudo_id1' => 'bob')
     normal_genotype_record_with_gene.raw_fields['genotype'] = 'N'
     normal_genotype_record_with_gene.raw_fields['moleculartestingtype'] = 'BRCA1 predictive test'
-    @logger.expects(:debug).with('Unable to extract gene')
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for BRCA1')
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for: BRCA1')
     @handler.process_variants_from_record(@genotype, normal_genotype_record_with_gene)
     assert_equal true, @handler.normal?(no_gene_normal_genotype_record)
     assert_equal 7, @genotype.attribute_map['gene']
@@ -263,7 +339,6 @@ class StGeorgeHandlerOldTest < ActiveSupport::TestCase
     normal_mtype_record_with_gene = build_raw_record('pseudo_id1' => 'bob')
     normal_mtype_record_with_gene.raw_fields['genotype'] = 'BR1 c.68_69delAG'
     normal_mtype_record_with_gene.raw_fields['moleculartestingtype'] = 'Predictive - unaffected'
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for BRCA1')
     @handler.process_variants_from_record(@genotype, normal_mtype_record_with_gene)
     assert_equal true, @handler.normal?(no_gene_normal_genotype_record)
     assert_equal 7, @genotype.attribute_map['gene']
@@ -271,9 +346,6 @@ class StGeorgeHandlerOldTest < ActiveSupport::TestCase
     fs_normal_mtype_record_with_gene = build_raw_record('pseudo_id1' => 'bob')
     fs_normal_mtype_record_with_gene.raw_fields['genotype'] = 'N'
     fs_normal_mtype_record_with_gene.raw_fields['moleculartestingtype'] = 'Full Screen - unaffected'
-    @logger.expects(:debug).with('Unable to extract gene')
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for BRCA1')
-    @logger.expects(:debug).with('SUCCESSFUL gene parse for BRCA2')
     variants = @handler.process_variants_from_record(@genotype, fs_normal_mtype_record_with_gene)
     assert_equal true, @handler.normal?(fs_normal_mtype_record_with_gene)
     assert_equal true, @handler.full_screen?(fs_normal_mtype_record_with_gene)
