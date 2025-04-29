@@ -82,6 +82,9 @@ module Import
                                   CNV.*only|
                                   CNV.*analysis|
                                   SNV.*ONLY|
+                                  Cancer\sGene\sPanel\sAnalysis\sOnly|
+                                  SNV\sand\sCNV\sanalysis|
+                                  SNV\sand\sCNV|
                                   Whole\sgene\sscreen)/xi
 
             TARGETED_REGEX = /(?<targeted>targeted|
@@ -96,6 +99,34 @@ module Import
               '10' => 'invalidvariantpathclass',
               'n/a' => 'invalidvariantpathclass'
             }.freeze
+
+            BRCA_PROFILE = [
+              'r207_ovarian',
+              'r208_breast',
+              'r208+213_breast+pten',
+              'r208+216_breast+tp53',
+              'r207_chcs_ovarian',
+              'r208_chcs_breast',
+              'r208+216_chcs_breast+tp53',
+              'r208+213_chcs_breast+pten',
+              'r430_chcs_ prostate',
+              'r444.1_chcs_breast',
+              'r444.2_chcs_prostate',
+              'familial - brca',
+              'r208, r213, r216'
+            ].freeze
+
+            BRCA_PROFILE_PHENO = [
+              'familial',
+              'cancer gene panel analysis only',
+              'r0_chcs_custom',
+              'cancer mlpa familial',
+              'ngs analysis only',
+              'familial - cancer ngs'
+            ].freeze
+
+            ONLY_BRCA_GENES_REGEX = /(?<brca>BRCA1|BRCA2|BRIP1|PALB2|
+                                      RAD51D|RAD51C|CHEK2|ATM)/ix
           end
         end
       end

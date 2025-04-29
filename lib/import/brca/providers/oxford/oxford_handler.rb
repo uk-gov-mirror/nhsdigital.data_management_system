@@ -11,7 +11,7 @@ module Import
 
             return if @files_not_to_process.include? @file_name
 
-            if @files_to_process.include?(@file_name) || brca_file?
+            if @files_to_process.include?(@file_name) || brca_file? || file_after_16_5_24?
               @files_to_process << @file_name unless @files_to_process.include?(@file_name)
               prepare_genotypes(record)
             else
@@ -20,6 +20,8 @@ module Import
           end
 
           def prepare_genotypes(record)
+            return if file_after_16_5_24? && !brca_record?(record)
+
             genotype = Import::Brca::Core::GenotypeBrca.new(record)
             genotype.add_passthrough_fields(record.mapped_fields,
                                             record.raw_fields,
@@ -51,12 +53,28 @@ module Import
             mlh1_count + apc_count < brca1_count
           end
 
+          def file_after_16_5_24?
+            submit_date = @file_name.split('/')[-2]
+            submit_date.to_date >= '16/05/2024'.to_date
+          end
+
           def get_csv_counts(csv)
             gene_tally  = csv['mapped:gene'].tally
             brca1_count = gene_tally['7'].to_i
             apc_count = gene_tally['358'].to_i
             mlh1_count = gene_tally['2744'].to_i
             [brca1_count, apc_count, mlh1_count]
+          end
+
+          def brca_record?(record)
+            # first priority
+            profile = record.raw_fields['profile']&.strip&.downcase
+            return true if BRCA_PROFILE.include?(profile)
+
+            # second priority
+            phenotype = record.raw_fields['phenotype']&.strip&.downcase
+            true if BRCA_PROFILE_PHENO.include?(profile) &&
+                    phenotype&.match?(/ATM|OvCa|BRCA|Br\sCa|PrCa|CHEK2/ix)
           end
 
           def add_organisationcode_testresult(genotype)
@@ -138,7 +156,12 @@ module Import
             genotypes = []
             gene      = record.mapped_fields['gene'].to_i
             synonym   = record.raw_fields['sinonym'].to_s
-            if GENE_VALUES.include? gene
+            profile = record.raw_fields['profile']&.strip&.downcase
+
+            if file_after_16_5_24? && ['r208+213_breast+pten',
+                                       'r208+213_chcs_breast+pten'].include?(profile)
+              process_gene_mixed_rec(genotype, record, genotypes)
+            elsif GENE_VALUES.include? gene
               add_oxford_gene(gene, genotype, genotypes)
             elsif BRCA_REGEX.match(synonym)
               add_oxford_gene(BRCA_REGEX.match(synonym)[:brca], genotype, genotypes)
@@ -146,6 +169,13 @@ module Import
               @logger.debug 'FAILED gene parse'
             end
             genotypes
+          end
+
+          def process_gene_mixed_rec(genotype, record, genotypes)
+            return unless record.raw_fields['gene'].match?(ONLY_BRCA_GENES_REGEX)
+
+            gene = record.mapped_fields['gene'].to_i
+            add_oxford_gene(gene, genotype, genotypes)
           end
 
           def assign_genomic_change(genotype, record)
