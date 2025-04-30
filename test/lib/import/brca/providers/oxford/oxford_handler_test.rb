@@ -4,9 +4,9 @@ class OxfordHandlerTest < ActiveSupport::TestCase
   def setup
     @record   = build_raw_record('pseudo_id1' => 'bob')
     @genotype = Import::Brca::Core::GenotypeBrca.new(@record)
-    # TODO: Fully qualify CambridgeHandler in cambridge_handler.rb
     @importer_stdout, @importer_stderr = capture_io do
       @handler = Import::Brca::Providers::Oxford::OxfordHandler.new(EBatch.new)
+      @handler.stubs(:file_after_16_5_24?).returns(true)
     end
 
     @logger = Import::Log.get_logger
@@ -333,6 +333,39 @@ class OxfordHandlerTest < ActiveSupport::TestCase
     @handler.assign_genomic_change(@genotype, broken_record)
   end
 
+  test 'do not process non brca record' do
+    new_record, = build_new_record_genotype
+    new_record.raw_fields['profile'] = 'R211_CHCS_Polyposis-CRC'
+    @handler.expects(:process_gene).never
+    @handler.prepare_genotypes(new_record)
+  end
+
+  test 'process_new_column_record' do
+    new_record, new_genotype = build_new_record_genotype
+    @handler.assign_test_scope(new_genotype, new_record)
+
+    assert_equal 'Full screen BRCA1 and BRCA2', new_genotype.attribute_map['genetictestscope']
+
+    variantpathclass = @handler.extract_variantpathclass(new_genotype, new_record)
+    assert_equal 3, new_genotype.attribute_map['variantpathclass']
+
+    @handler.assign_test_type(new_genotype, new_record)
+    assert_equal 1, new_genotype.attribute_map['moleculartestingtype']
+
+    @handler.process_variants(new_genotype, new_record, variantpathclass)
+    assert_equal 'c.7928C>T', new_genotype.attribute_map['codingdnasequencechange']
+
+    @handler.process_protein_impact(new_genotype, new_record)
+    assert_equal 'p.Ala2643Val', new_genotype.attribute_map['proteinimpact']
+
+    @handler.assign_genomic_change(new_genotype, new_record)
+    assert_equal '13:32936782', new_genotype.attribute_map['genomicchange']
+    assert_equal 9, new_genotype.attribute_map['humangenomebuild']
+
+    @handler.process_gene(new_genotype, new_record)
+    assert_equal 8, new_genotype.attribute_map['gene']
+  end
+
   private
 
   def clinical_json
@@ -376,5 +409,27 @@ class OxfordHandlerTest < ActiveSupport::TestCase
       'origin of mutation / rearrangement' => nil,
       'percentage mutation allele / abnormal karyotye' => nil,
       sinonym: 'A_BRCA2-17______' }.to_json
+  end
+
+  def new_rawtext_clinical_json
+    original = JSON.parse(rawtext_clinical_json)
+    original['profile'] = 'R208+213_Breast+PTEN'
+    original['phenotype'] = 'BRCA'
+    original.to_json
+  end
+
+  def build_new_record_genotype
+    default_options = {
+      'pseudo_id1' => '',
+      'pseudo_id2' => '',
+      'encrypted_demog' => '',
+      'clinical.to_json' => clinical_json,
+      'encrypted_rawtext_demog' => '',
+      'rawtext_clinical.to_json' => new_rawtext_clinical_json
+    }
+
+    new_record = Import::Germline::RawRecord.new(default_options.merge!('pseudo_id1' => 'bob'))
+    new_genotype = Import::Brca::Core::GenotypeBrca.new(new_record)
+    [new_record, new_genotype]
   end
 end

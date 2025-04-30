@@ -68,8 +68,7 @@ module Import
                           exon\s?(?<exons>[0-9]+)\s?-exon\s?(?<otherexon>[0-9]+)\s?(?<mutationtype>del|inv|dup)|
                           (?<mutationtype>del|inv|dup)(.+ion)?\s?ex(on)?\s?(?<exons>[0-9]+(-[0-9]+)?)/ix
 
-            GENOMICCHANGE_REGEX = /Chr(?<chromosome>\d+)\.hg
-                                   (?<genome_build>\d+):g\.(?<effect>.+)/ix
+            GENOMICCHANGE_REGEX = /Chr(?<chromosome>\d+)(\.hg(?<genome_build>\d+))?:\s?g\.(?<effect>.+)/ix
 
             FULL_SCREEN_REGEX = /(?<fullscreen>panel|
                                   full\s?screen|
