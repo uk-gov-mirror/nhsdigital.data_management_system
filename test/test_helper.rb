@@ -22,11 +22,14 @@ require 'create_records_helper'
 
 require_relative 'download_helpers'
 
-Capybara.server = :puma, { Silent: true }
+# Supporting multiple threads allows assets to be served faster:
+Capybara.server = :puma, { Silent: true, Threads: '0:4' }
 
 # When running in parallel, there can be occassional chokes, so this accounts for that.
 # This shouldn't slow down tests that are well-written.
 Capybara.default_max_wait_time = 10.seconds
+
+Capybara.disable_animation = true
 
 # Devise support for functional / integration test
 module ActionDispatch
@@ -154,9 +157,11 @@ module ActiveSupport
     def login_and_accept_terms(user)
       sign_in user
       visit terms_and_conditions_path
+      assert_text user.email
       return if page.has_text?('Terms and Conditions have been accepted')
 
       click_on 'Accept'
+      assert_text /Welcome to Data Management System|Projects Dashboard/
     end
 
     def within_row(text)

@@ -34,6 +34,7 @@ class ApplicationProjectTest < ActionDispatch::IntegrationTest
       select @user.full_name, from: 'Application Manager'
       click_button 'Apply'
     end
+    assert_text 'Application was successfully assigned'
 
     accept_confirm { click_button 'Begin DPIA' }
 
@@ -48,14 +49,14 @@ class ApplicationProjectTest < ActionDispatch::IntegrationTest
 
     click_button 'Reject DPIA'
     assert_assignment_email(assignee: @user, assigner: @peer, comments: 'not today!') do
-      within_modal(selector: '#modal-dpia_rejected') do
+      within('#modal-dpia_rejected') do
         select @user.full_name, from: 'project[project_state][assigned_user_id]'
         fill_in 'project_comments_attributes_0_body', with: 'not today!'
         click_button 'Save'
       end
+      assert has_text? 'DPIA Rejected'
     end
 
-    assert has_text? 'DPIA Rejected'
     assert has_no_button?('Begin DPIA')
 
     change_sign_in @user
@@ -306,7 +307,7 @@ class ApplicationProjectTest < ActionDispatch::IntegrationTest
   def reassign_for_moderation_to(assignee:, assigner:)
     assert_assignment_email(assignee: assignee, assigner: assigner) do
       click_button 'Send for Peer Review'
-      within_modal(selector: '#modal-dpia_review') do
+      within('#modal-dpia_review') do
         select assignee.full_name, from: 'project[project_state][assigned_user_id]'
         click_button 'Save'
       end
