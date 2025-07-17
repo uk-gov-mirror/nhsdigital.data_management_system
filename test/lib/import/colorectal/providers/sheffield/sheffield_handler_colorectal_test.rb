@@ -163,6 +163,52 @@ class SheffieldHandlerColorectalTest < ActiveSupport::TestCase
     assert_nil genocolorectals[0].attribute_map['gene']
   end
 
+  test 'process_targeted_no_scope_failure' do 
+    exon_record = build_raw_record('pseudo_id1' => 'bob')
+    exon_record.raw_fields['genetictestscope'] = 'efgh'
+    exon_record.raw_fields['karyotypingmethod'] = 'abcd'
+    exon_record.raw_fields['genotype'] = 'Fail'
+    exon_record.raw_fields['moleculartestingtype'] = 'Diagnostic testing'
+    @handler.add_test_scope_from_geno_karyo(@genotype, exon_record)
+    genocolorectals = @handler.process_variants_from_record(@genotype, exon_record)
+    assert_equal 1, genocolorectals.size
+    assert_equal 'Unable to assign Colorectal Lynch or MMR genetictestscope', @genotype.attribute_map['genetictestscope']
+    assert_nil genocolorectals[0].attribute_map['proteinimpact']
+    assert_equal 9, genocolorectals[0].attribute_map['teststatus']
+  end
+
+  test 'process_targeted_no_scope_normal' do 
+    exon_record = build_raw_record('pseudo_id1' => 'bob')
+    exon_record.raw_fields['genetictestscope'] = 'efgh'
+    exon_record.raw_fields['karyotypingmethod'] = 'abcd'
+    exon_record.raw_fields['genotype'] = 'no pathogenic variant detected'
+    exon_record.raw_fields['moleculartestingtype'] = 'Diagnostic testing'
+    @handler.add_test_scope_from_geno_karyo(@genotype, exon_record)
+    genocolorectals = @handler.process_variants_from_record(@genotype, exon_record)
+    assert_equal 1, genocolorectals.size
+    assert_equal 'Unable to assign Colorectal Lynch or MMR genetictestscope', @genotype.attribute_map['genetictestscope']
+    assert_nil genocolorectals[0].attribute_map['proteinimpact']
+    assert_nil genocolorectals[0].attribute_map['codingdnasequencechange']
+    assert_equal 1, genocolorectals[0].attribute_map['teststatus']
+    assert_nil genocolorectals[0].attribute_map['gene']
+  end
+
+  test 'process_targeted_no_scope_abnormal' do 
+    exon_record = build_raw_record('pseudo_id1' => 'bob')
+    exon_record.raw_fields['genetictestscope'] = 'efgh'
+    exon_record.raw_fields['karyotypingmethod'] = 'abcd'
+    exon_record.raw_fields['genotype'] = 'MSH2-c.1234_1345del-p.(Gln123fs)-Heterozygous-UV4'
+    exon_record.raw_fields['moleculartestingtype'] = 'Diagnostic testing'
+    @handler.add_test_scope_from_geno_karyo(@genotype, exon_record)
+    genocolorectals = @handler.process_variants_from_record(@genotype, exon_record)
+    assert_equal 1, genocolorectals.size
+    assert_equal 'Unable to assign Colorectal Lynch or MMR genetictestscope', @genotype.attribute_map['genetictestscope']
+    assert_equal 2, genocolorectals[0].attribute_map['teststatus']
+    assert_equal 'p.Gln123fs', genocolorectals[0].attribute_map['proteinimpact']
+    assert_equal 'c.1234_1345del', genocolorectals[0].attribute_map['codingdnasequencechange']
+    assert_equal 2804, genocolorectals[0].attribute_map['gene']
+  end
+
   test 'process_cdna_change' do
     @logger.expects(:debug).with('SUCCESSFUL cdna change parse for: 1653dup')
     @handler.process_cdna_change(@genotype, @record.raw_fields['genotype'])
@@ -200,6 +246,22 @@ class SheffieldHandlerColorectalTest < ActiveSupport::TestCase
     assert_equal 3, genocolorectals[0].attribute_map['sequencevarianttype']
     assert_equal 3394, genocolorectals[0].attribute_map['gene']
     assert_equal 1, genocolorectals[0].attribute_map['variantgenotype']
+  end
+
+  test 'unusual characters in panel name' do
+    exon_record = build_raw_record('pseudo_id1' => 'bob')
+    exon_record.raw_fields['genetictestscope'] = 'R211 :: Inherited polyposis and early onset colorectal cancer â€šÃ„Ã¬ germline testing'
+    exon_record.raw_fields['karyotypingmethod'] = 'R211.1 :: Small panel in Leeds â€šÃ„Ã¬ send DNA sample'
+    exon_record.raw_fields['genotype'] = 'PMS2-c.[1234A>G]-Heterozygous-UV5'
+    exon_record.raw_fields['moleculartestingtype'] = 'Diagnostic testing'
+    @handler.add_test_scope_from_geno_karyo(@genotype, exon_record)
+    genocolorectals = @handler.process_variants_from_record(@genotype, exon_record)
+    assert_equal 15, genocolorectals.size
+    assert_equal 'Full screen Colorectal Lynch or MMR', genocolorectals[0].attribute_map['genetictestscope']
+    assert_nil genocolorectals[0].attribute_map['proteinimpact']
+    assert_equal 'c.1234A>G', genocolorectals[0].attribute_map['codingdnasequencechange']
+    assert_equal 1, genocolorectals[0].attribute_map['sequencevarianttype']
+    assert_equal 3394, genocolorectals[0].attribute_map['gene']
   end
 
   private
