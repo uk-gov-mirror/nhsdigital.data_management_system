@@ -12,6 +12,7 @@ class CreateAndEditProjectTest < ActionDispatch::IntegrationTest
 
     within('#projects-panel') do
       click_button 'New'
+      assert_text /New$/
       click_link 'Project'
     end
 
@@ -44,6 +45,7 @@ class CreateAndEditProjectTest < ActionDispatch::IntegrationTest
 
     within('#projects-panel') do
       click_button 'New'
+      assert_text /New$/
       click_link 'Project'
     end
 
@@ -223,6 +225,7 @@ class CreateAndEditProjectTest < ActionDispatch::IntegrationTest
 
     within('#projects-panel') do
       click_button 'New'
+      assert_text /New$/
       click_link 'Project'
     end
 
@@ -243,6 +246,7 @@ class CreateAndEditProjectTest < ActionDispatch::IntegrationTest
 
     within('#projects-panel') do
       click_button 'New'
+      assert_text /New$/
       click_link 'Project'
     end
 
@@ -251,9 +255,9 @@ class CreateAndEditProjectTest < ActionDispatch::IntegrationTest
     select 'Another User', from: 'project_owner_grant_attributes_user_id'
     assert_difference('Grant.count', 1) do
       click_button 'Save'
+      assert_text('Project was successfully created')
     end
     project = Project.find_by(name: 'user creating is project owner')
-    assert page.has_content?('Project was successfully created')
     assert project.grants.first.roleable == ProjectRole.fetch(:owner)
   end
 
@@ -264,6 +268,7 @@ class CreateAndEditProjectTest < ActionDispatch::IntegrationTest
 
     within('#projects-panel') do
       click_button 'New'
+      assert_text /New$/
       click_link 'Project'
     end
 
@@ -271,6 +276,7 @@ class CreateAndEditProjectTest < ActionDispatch::IntegrationTest
     fill_in 'project_name', with: 'user is creating project for another user'
     assert_difference('Grant.count', 2) do
       click_button 'Save'
+      assert_text 'Project was successfully created'
     end
     project = Project.find_by(name: 'user is creating project for another user')
     assert_equal 1, (project.grants.count { |g| g.roleable == owner_role })
@@ -287,6 +293,7 @@ class CreateAndEditProjectTest < ActionDispatch::IntegrationTest
 
     within('#projects-panel') do
       click_button 'New'
+      assert_text /New$/
       click_link 'Project'
     end
 
@@ -294,6 +301,7 @@ class CreateAndEditProjectTest < ActionDispatch::IntegrationTest
     fill_in 'project_name', with: 'created for someone else in team'
     assert_difference('Grant.count', 2) do
       click_button 'Save'
+      assert_text 'Project was successfully created'
     end
     project = Project.find_by(name: 'created for someone else in team')
     owner_grant_id = project.owner_grant.id
@@ -329,6 +337,7 @@ class CreateAndEditProjectTest < ActionDispatch::IntegrationTest
 
     within('#projects-panel') do
       click_button 'New'
+      assert_text /New$/
       click_link 'Project'
     end
     fill_in 'project_name', with: 'Dataset Project Test'
@@ -344,6 +353,7 @@ class CreateAndEditProjectTest < ActionDispatch::IntegrationTest
     new_li.find('div.remove_record').click
     assert_difference('ProjectDataset.count', 1) do
       click_button 'Save'
+      assert_text 'Project was successfully created'
     end
   end
 
@@ -369,6 +379,7 @@ class CreateAndEditProjectTest < ActionDispatch::IntegrationTest
     visit team_path(@team)
     within('#projects-panel') do
       click_button 'New'
+      assert_text /New$/
       click_link 'EOI'
     end
 
@@ -379,6 +390,7 @@ class CreateAndEditProjectTest < ActionDispatch::IntegrationTest
     visit team_path(@team)
     within('#projects-panel') do
       click_button 'New'
+      assert_text /New$/
       click_link 'EOI'
     end
 

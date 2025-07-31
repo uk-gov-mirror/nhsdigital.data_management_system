@@ -15,7 +15,7 @@ gem 'concurrent-ruby', '1.3.4'
 # so that we can continue to use aliases in config/locales/en.yml
 # cf. https://stackoverflow.com/questions/71191685/visit-psych-nodes-alias-unknown-alias-default-psychbadalias
 gem 'psych', '4.0.4' # Exactly match the version on Ruby 3.1
-gem 'stringio', '3.0.1.2' # psych dependency: exactly match the version on Ruby 3.1
+gem 'stringio', '3.1.1' # psych dependency: exactly match the default version on Ruby 3.3
 
 # Use postgresql as the database for Active Record
 gem 'pg', '~> 1.4.6' # All client instance have postgres version >= 9.3

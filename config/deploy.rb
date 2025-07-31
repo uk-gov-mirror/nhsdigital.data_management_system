@@ -18,13 +18,14 @@ ssh_options[:compression] = 'none' # Avoid pointless zlib warning
 set :delayed_job_command, 'bin/delayed_job'
 # set :delayed_job_args,    '-n 1'
 
-if Resolv.getaddresses('ndr-svn.phe.gov.uk').any?
+# look for open ports locally instead of checking the DNS
+if system("lsof -F n -n -P -a -i TCP@localhost:4142 -sTCP:LISTEN", out: '/dev/null')
   # Use private repository for some configuration files
-  set :secondary_repo, 'https://ndr-svn.phe.gov.uk/svn/non-era/mbis'
+  set :secondary_repo, 'https://localhost:4142/svn/non-era/mbis'
   # Private repository for encrypted credentials
   # TODO: Add support for per-deployment encrypted credentials to ndr_dev_support
   set :credentials_repo,
-      'https://ndr-svn.phe.gov.uk/svn/encrypted-credentials-store/mbis_front/base'
+      'https://localhost:4142/svn/encrypted-credentials-store/mbis_front/base'
 else
   # For off-premise deployments, configuration will be provided to the startup script
   # in Base64-encoded environment variables.
