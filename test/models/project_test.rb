@@ -671,7 +671,7 @@ class ProjectTest < ActiveSupport::TestCase
   test 'should update duration on save' do
     project = projects(:test_application)
 
-    project.update!(duration: 1)
+    project.update!(duration: 99)
 
     assert_no_changes -> { project[:duration] } do
       project.description = 'Test'
