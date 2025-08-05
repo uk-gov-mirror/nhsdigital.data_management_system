@@ -256,7 +256,7 @@ GEM
       net-ldap
       rails (>= 7.0, < 7.3)
       yubikey
-    ndr_dev_support (7.3.2)
+    ndr_dev_support (7.3.3)
       activesupport (>= 6.1, < 8.1)
       brakeman (>= 4.7.1)
       bundler-audit
@@ -272,7 +272,7 @@ GEM
       prometheus-client (~> 4.0.0)
       pry
       rainbow
-      rubocop (~> 1.7)
+      rubocop (~> 1.72)
       rubocop-rails (~> 2.9)
       rubocop-rake (~> 0.5)
       rugged
@@ -472,7 +472,7 @@ GEM
     ruby-ole (1.2.13.1)
     ruby-progressbar (1.13.0)
     ruby-rc4 (0.1.5)
-    ruby-saml (1.18.0)
+    ruby-saml (1.18.1)
       nokogiri (>= 1.13.10)
       rexml
     ruby2_keywords (0.0.5)
