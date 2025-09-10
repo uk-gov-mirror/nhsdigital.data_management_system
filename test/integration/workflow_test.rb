@@ -77,7 +77,7 @@ class WorkflowTest < ActionDispatch::IntegrationTest
 
     assert has_no_button?('Submit for Delegate Approval')
 
-    assert_enqueued_email_with ProjectsMailer, :state_changed, args: {
+    assert_enqueued_email_with ProjectsMailer, :state_changed, params: {
       project:      project,
       user:         other_user,
       current_user: user

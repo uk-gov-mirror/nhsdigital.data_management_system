@@ -9,8 +9,8 @@ namespace :import do
   SYNTAX
   task weekly: [:environment, 'pseudo:keys:load'] do
     e_types = ENV['e_types'].presence&.split(',') || %w[PSBIRTH PSDEATH]
-    logger = ActiveSupport::Logger.new($stdout)
-    logger.extend(ActiveSupport::Logger.broadcast(Rails.logger))
+    logger = ActiveSupport::BroadcastLogger.new(ActiveSupport::Logger.new($stdout))
+    logger.broadcast_to(Rails.logger)
     begin
       count = Import::Helpers::RakeHelper::FileImporter.import_weekly(e_types, logger: logger)
       if count.zero?

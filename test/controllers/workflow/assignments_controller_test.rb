@@ -92,14 +92,14 @@ module Workflow
 
     test 'sends notification emails on successful assignment' do
       project_state = @project.current_project_state
-      args = {
+      params = {
         project:     @project,
         assigned_to: @user_two,
         assigned_by: @user_one
       }
 
       assert_enqueued_emails 1 do
-        assert_enqueued_email_with ProjectsMailer, :project_assignment, args: args do
+        assert_enqueued_email_with ProjectsMailer, :project_assignment, params: params do
           post workflow_project_state_assignments_path(project_state), params: {
             assignment: {
               assigned_user_id: @user_two.id

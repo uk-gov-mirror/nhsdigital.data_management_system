@@ -6,8 +6,8 @@ source 'https://rubygems.org'
 # README) is available at:
 #  https://github.com/NHSDigital/activemodel-caution.git
 
-gem 'activemodel-caution', '7.0.8' # Supports rails ~> 7.0.8.0
-gem 'rails', '~> 7.0.4', '>= 7.0.8.1'
+gem 'activemodel-caution', '7.1.5.0' # Supports rails ~> 7.1.5.0
+gem 'rails', '~> 7.1.5', '>= 7.1.5.1'
 # Fixes uninitialized constant ActiveSupport::LoggerThreadSafeLevel::Logger on Rails 7.0x
 # and earlier. See https://github.com/rails/rails/issues/54260.
 gem 'concurrent-ruby', '1.3.4'
@@ -47,7 +47,7 @@ gem 'cancancan', '~> 3.0'
 gem 'cocoon'
 gem 'devise', '~> 4.7', '>=  4.7.1'
 gem 'highline'
-gem 'paper_trail', '~> 12.0'
+gem 'paper_trail', '~> 16.0'
 gem 'paper_trail-association_tracking'
 gem 'possibly'
 gem 'pry'

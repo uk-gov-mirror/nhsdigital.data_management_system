@@ -13,7 +13,12 @@ require 'ndr_error/middleware/public_exceptions'
 module Mbis
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.0
+    config.load_defaults 7.1
+
+    # Please, add to the `ignore` list any other `lib` subdirectories that do
+    # not contain `.rb` files, or that should not be reloaded or eager loaded.
+    # Common ones are `templates`, `generators`, or `middleware`, for example.
+    config.autoload_lib(ignore: %w(assets tasks))
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -33,9 +38,6 @@ module Mbis
 
     # Configure the ActionDispatch::ShowExceptions middleware to use NdrError's exception logger:
     config.exceptions_app = NdrError::Middleware::PublicExceptions.new(Rails.public_path)
-
-    config.autoloader = :zeitwerk
-    config.eager_load_paths += %W[#{config.root}/lib]
 
     # Weird assets are not Ruby code:
     Rails.autoloaders.main.ignore("#{config.root}/lib/schema_browser/Template")

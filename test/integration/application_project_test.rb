@@ -305,13 +305,12 @@ class ApplicationProjectTest < ActionDispatch::IntegrationTest
   private
 
   def reassign_for_moderation_to(assignee:, assigner:)
-    assert_assignment_email(assignee: assignee, assigner: assigner) do
-      click_button 'Send for Peer Review'
-      within('#modal-dpia_review') do
-        select assignee.full_name, from: 'project[project_state][assigned_user_id]'
-        click_button 'Save'
-      end
+    click_button 'Send for Peer Review'
+    within('#modal-dpia_review') do
+      select assignee.full_name, from: 'project[project_state][assigned_user_id]'
+      click_button 'Save'
     end
+    assert has_no_button?('Save')
 
     assert has_no_button?('Send for Moderation')
 
@@ -323,7 +322,7 @@ class ApplicationProjectTest < ActionDispatch::IntegrationTest
   def assert_assignment_email(assignee:, assigner:, comments: nil)
     yield
 
-    assert_enqueued_email_with ProjectsMailer, :project_assignment, args: {
+    assert_enqueued_email_with ProjectsMailer, :project_assignment, params: {
       project:     @project.reload,
       assigned_to: assignee,
       assigned_by: assigner,

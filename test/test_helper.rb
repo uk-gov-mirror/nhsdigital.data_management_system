@@ -242,8 +242,8 @@ end
 module ActionMailerHelper
   # Override :assert_enqueued_email_with to be aware of our own mailer config injection
   # (see ApplicationMailer), for convenience.
-  def assert_enqueued_email_with(mailer, method, args: nil, queue: 'default', &block)
-    args.merge!(url_options: ActionMailer::Base.default_url_options) if args.is_a?(Hash)
+  def assert_enqueued_email_with(mailer, method, params: nil, queue: 'default', &block)
+    params.merge!(url_options: ActionMailer::Base.default_url_options) if params.is_a?(Hash)
 
     super
   end

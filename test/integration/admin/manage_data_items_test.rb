@@ -77,6 +77,7 @@ class ManageDataItemsTest < ActionDispatch::IntegrationTest
 
     find_button('New Node').click
     find_link('Entity').click
+    assert_text 'Add a new Entity'
 
     within_modal do
       fill_in 'Name',        with: 'New Entity'

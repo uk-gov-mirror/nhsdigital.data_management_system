@@ -92,8 +92,8 @@ namespace :export do
       warn "ERROR: Configuration file #{config_fname} does not exist; aborting."
       exit 1
     end
-    logger = ActiveSupport::Logger.new($stdout)
-    logger.extend(ActiveSupport::Logger.broadcast(Rails.logger))
+    logger = ActiveSupport::BroadcastLogger.new(ActiveSupport::Logger.new($stdout))
+    logger.broadcast_to(Rails.logger)
     if import_weekly
       old_quieter = ENV['quieter_import_weekly']
       ENV['quieter_import_weekly'] = 'y'

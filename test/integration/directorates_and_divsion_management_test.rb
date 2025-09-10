@@ -42,13 +42,14 @@ class DirectoratesAndDivisionsManagementTest < ActionDispatch::IntegrationTest
 
   test 'delete a directorate attached to team' do
     visit directorates_path
+    assert_text 'Add Directorate'
     assert_difference('Directorate.count', 0) do
       accept_prompt do
         directorate2_row = page.find('#directorates_information').find('tr', text: 'Directorate 1')
         directorate2_row.click_link('Delete')
       end
+      assert_text("You can't delete directorate as it assigned to active user or active teams")
     end
-    assert page.has_content?("You can't delete directorate as it assigned to active user or active teams")
   end
 
 end
