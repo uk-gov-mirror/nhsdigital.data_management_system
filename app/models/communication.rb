@@ -15,7 +15,7 @@ class Communication < ApplicationRecord
 
   has_paper_trail
 
-  enum medium: { email: 1, phone: 2, letter: 3, in_person: 4 }
+  enum :medium, { email: 1, phone: 2, letter: 3, in_person: 4 }
 
   validates :medium,       presence: true
   validates :contacted_at, presence: true

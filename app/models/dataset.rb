@@ -16,7 +16,7 @@ class Dataset < ApplicationRecord
 
   delegate :name, to: :dataset_type, prefix: true, allow_nil: true
 
-  enum cas_type: { cas_defaults: 1, cas_extras: 2 }
+  enum :cas_type, { cas_defaults: 1, cas_extras: 2 }
 
   DATASET_BROWSER_TYPES = %w[xml non_xml].freeze
 

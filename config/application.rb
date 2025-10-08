@@ -1,4 +1,4 @@
-TIME_PROCESS_STARTED = Time.now
+TIME_PROCESS_STARTED = Time.now # rubocop:disable Rails/TimeZone
 
 require_relative 'boot'
 
@@ -11,6 +11,7 @@ Bundler.require(*Rails.groups)
 require 'ndr_error/middleware/public_exceptions'
 
 module Mbis
+  # Global application configurations
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.1
@@ -18,7 +19,7 @@ module Mbis
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w(assets tasks))
+    config.autoload_lib(ignore: %w[assets tasks])
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -65,6 +66,14 @@ module Mbis
     config.i18n.default_locale    = :en
     config.i18n.fallbacks         = true
     config.i18n.available_locales = %i[en en-odr]
+
+    # Configuration for the application, engines, and railties goes here.
+    #
+    # These settings can be overridden in specific environments using the files
+    # in config/environments, which are processed later.
+    #
+    # config.time_zone = "Central Time (US & Canada)"
+    # config.eager_load_paths << Rails.root.join("extras")
 
     # TODO: Would be nice to push this out to a YAML file and access via `config_for`
     # so that we can avoid hardcoding...

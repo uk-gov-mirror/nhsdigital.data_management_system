@@ -181,8 +181,9 @@ module Workflow
       state   = workflow_states(:step_one)
       payload = { project: @project, transition: [@project.current_state, state] }
 
-      ActiveSupport::Notifications.expects(:instrument).with('transition.project', payload)
-
+      ActiveSupport::Notifications.expects(:instrument).with do |name, _payload|
+        name == 'start_transaction.active_record'
+      end.at_most_once.then.with('transition.project', payload)
       @project.transition_to(state)
     end
 

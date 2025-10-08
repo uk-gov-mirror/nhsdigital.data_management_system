@@ -6,8 +6,8 @@ source 'https://rubygems.org'
 # README) is available at:
 #  https://github.com/NHSDigital/activemodel-caution.git
 
-gem 'activemodel-caution', '7.1.5.0' # Supports rails ~> 7.1.5.0
-gem 'rails', '~> 7.1.5', '>= 7.1.5.1'
+gem 'activemodel-caution', '7.2.2.0' # Supports rails ~> 7.2.2.0
+gem 'rails', '~> 7.2.2', '>= 7.2.2.2'
 # Fixes uninitialized constant ActiveSupport::LoggerThreadSafeLevel::Logger on Rails 7.0x
 # and earlier. See https://github.com/rails/rails/issues/54260.
 gem 'concurrent-ruby', '1.3.4'
@@ -63,9 +63,6 @@ gem 'will_paginate'
 
 # net-imap (via ndr_error) requires date. Puma needs us to stick to the ruby default version.
 gem 'date', '3.1.3' # Lock to Ruby 3.0 version of gem for live service
-
-# TODO: 2023-09-03: Updating mail to 2.8.1 causes tests failures on Rails 6.1
-gem 'mail', '>= 2.1.1', '< 2.8.0' # mail 2.8.0 and 2.8.0.1 have major hidden bugs
 
 gem 'ndr_authenticate', '~> 0.3', '>= 0.3.3'
 gem 'ndr_error', '~> 2.0'
