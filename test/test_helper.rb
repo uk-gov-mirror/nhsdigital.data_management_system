@@ -19,6 +19,7 @@ require 'ndr_dev_support/integration_testing'
 require 'pry'
 require 'capybara/email'
 require 'create_records_helper'
+require 'selenium_error_patch'
 
 require_relative 'download_helpers'
 
