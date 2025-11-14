@@ -164,67 +164,67 @@ jobs:
         if: ${{ needs.remaining_test_matrix.result != 'success' }}
         run: exit 1
 
-  notify:
-    # Run only on master, but regardless of whether tests past:
-    if: ${{ always() }}
-    # if: ${{ always() && github.ref == 'refs/heads/master' }}
-
-    needs:
-      - integration_tests
-      - remaining_tests
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/setup-node@v3
-        # with:
-        #   node-version: '16.x'
-      - id: slack-payload-generator
-        env:
-          COMMIT_MESSAGE: ${{ github.event.commits[0].message }}
-        run: |-
-          node -e "
-            const passed = '${{ needs.integration_tests.result }}' === 'success' && '${{ needs.remaining_tests.result }}' === 'success'
-
-            const text = process.env.COMMIT_MESSAGE
-
-            let attachments = [
-              {
-                fallback: text,
-                text: text,
-                fields: [
-                  { title: 'Author', value: '${{ github.actor }}', short: true },
-                  { title: 'Revision', value: '${{ github.sha }}', short: true }
-                ]
-                // ts: @commit.author[:time].to_i
-              }
-            ]
-
-            if (passed) {
-              attachments.push({
-                color: 'good',
-                text: 'Tests passed'
-              })
-            } else {
-              attachments.push({
-                color: 'danger',
-                text: 'Test(s) failed'
-              })
-            }
-
-            let payload = {
-              channel: '${{ secrets.SLACK_CHANNEL }}',
-              username: 'GitHub CI',
-              icon_emoji: ':robot_face:',
-              attachments: attachments
-            }
-
-            console.log('json=' + JSON.stringify(payload))
-          " >> "$GITHUB_OUTPUT"
-      - uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          fields: workflow,commit,author
-          custom_payload: ${{ steps.slack-payload-generator.outputs.json }}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+#  notify:
+#    # Run only on master, but regardless of whether tests past:
+#    if: ${{ always() }}
+#    # if: ${{ always() && github.ref == 'refs/heads/master' }}
+#
+#    needs:
+#      - integration_tests
+#      - remaining_tests
+#
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - uses: actions/setup-node@v3
+#        # with:
+#        #   node-version: '16.x'
+#      - id: slack-payload-generator
+#        env:
+#          COMMIT_MESSAGE: ${{ github.event.commits[0].message }}
+#        run: |-
+#          node -e "
+#            const passed = '${{ needs.integration_tests.result }}' === 'success' && '${{ needs.remaining_tests.result }}' === 'success'
+#
+#            const text = process.env.COMMIT_MESSAGE
+#
+#            let attachments = [
+#              {
+#                fallback: text,
+#                text: text,
+#                fields: [
+#                  { title: 'Author', value: '${{ github.actor }}', short: true },
+#                  { title: 'Revision', value: '${{ github.sha }}', short: true }
+#                ]
+#                // ts: @commit.author[:time].to_i
+#              }
+#            ]
+#
+#            if (passed) {
+#              attachments.push({
+#                color: 'good',
+#                text: 'Tests passed'
+#              })
+#            } else {
+#              attachments.push({
+#                color: 'danger',
+#                text: 'Test(s) failed'
+#              })
+#            }
+#
+#            let payload = {
+#              channel: '${{ secrets.SLACK_CHANNEL }}',
+#              username: 'GitHub CI',
+#              icon_emoji: ':robot_face:',
+#              attachments: attachments
+#            }
+#
+#            console.log('json=' + JSON.stringify(payload))
+#          " >> "$GITHUB_OUTPUT"
+#      - uses: 8398a7/action-slack@v3
+#        with:
+#          status: custom
+#          fields: workflow,commit,author
+#          custom_payload: ${{ steps.slack-payload-generator.outputs.json }}
+#        env:
+#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
