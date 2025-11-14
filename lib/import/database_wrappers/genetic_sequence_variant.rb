@@ -15,7 +15,6 @@ module Import
                        %w[geneticsequencevariantid
                           genetic_test_result_id
                           humangenomebuild
-                          referencetranscriptid
                           genomicchange
                           clinvarid
                           cosmicid

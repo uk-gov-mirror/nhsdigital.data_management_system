@@ -123,6 +123,11 @@ module Import
             EPCAM|FH|FLCN|GREM1|MET|MLH1|MSH2|MSH6|MUTYH|NTHL1|PALB2|
             PMS2|POLD1|POLE|PTEN|RAD51C|RAD51D|SDHB|SMAD4|STK11|TP53|VHL'.freeze
 
+            NEW_FORMAT_GENES = /(?<gene>ATM|BRCA1|BRCA2|BRIP1|CHEK2|MLH1|MSH2|MSH6|PALB2|POT1|PTEN|
+                                RAD51C|RAD51D|TP53)/x
+
+            NEW_TARG_GENES_REGEX = /(?<gene>BRCA1|BRCA2|BRIP1|CHEK2|PALB2|RAD51C|RAD51D)/x
+
             # rubocop:disable Lint/MixedRegexpCaptureTypes
             BRCA_REGEX = /(?<gene>#{GENES})/ix
 
@@ -134,9 +139,11 @@ module Import
             HETEROZYGOUS_GENE_REGEX = /heterozygous[\w\s]+(?<gene>#{GENES})[\w\s]+/ix
 
             CDNA_REGEX = /c\.(?<cdna>[\w+>*\-]+)?[\w\s.]+/ix
+            CDNA = /c\.(?<cdna>[\w.+>*\-]+)/ix
 
             TARG_GENE_REGEX = /(?<gene>#{GENES})[\w\s]+(c\.(?<cdna>[\w+>*\-]+)?[\w\s.]+|exon)/ix
 
+            GENE_CDNA_PROTEIN = /(?<gene>#{GENES})\s+c\.(?<cdna>[\w.+>*\-]+)\s+p\.?\(?(?<impact>\w+)\)?/ix
             PROTEIN_REGEX = /\(?p\.\(?(?<impact>\w+)\)?/ix
 
             EXON_VARIANT_REGEX = /(?<variant>del|dup|ins).+ex(on)?s?\s?
@@ -149,6 +156,8 @@ module Import
                                   ex(on)?s?\s?(?<exons>[0-9]+(\sto\s[0-9]+)?)\s
                                   (?<variant>del|dup|ins)|
                                   x(?<exons>[0-9+-? ]+)+(?<variant>del|dup|ins)/ix
+
+            REF_TRANSCRIPT_ID = /NM_\d{6}\.\d(?=:)/ix
             # rubocop:enable Lint/MixedRegexpCaptureTypes
           end
         end

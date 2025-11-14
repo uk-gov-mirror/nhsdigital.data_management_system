@@ -46,6 +46,7 @@ module Import
                      'NTHL1' => 3108,
                      'POLD1' => 3408,
                      'POLE' => 5000,
+                     'POT1' => 5001,
                      'SDHB' => 68,
                      'VHL' => 83 }.freeze
 
@@ -86,6 +87,7 @@ module Import
                       (?<nthl1>NTHL1)|
                       (?<pold1>POLD1)|
                       (?<pole>POLE)|
+                      (?<pot1>POT1)|
                       (?<sdhb>SDHB)|
                       (?<vhl>VHL)/ix # Added by Francesco
 
@@ -114,7 +116,7 @@ module Import
 
         def process_integer_imput(brca_input)
           if [7, 8, 72, 79, 451, 865, 3186, 2744, 1432, 2804, 2808, 3394, 62, 76,
-              590, 2912, 3615, 3616, 2850, 54, 55, 74, 4952, 18, 20, 794].include? brca_input
+              590, 2912, 3615, 3616, 2850, 54, 55, 74, 4952, 18, 20, 794, 5001].include? brca_input
             @attribute_map['gene'] = brca_input
             @logger.debug "SUCCESSFUL gene parse for #{brca_input}"
           elsif (1..2).cover? brca_input

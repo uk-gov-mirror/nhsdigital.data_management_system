@@ -340,7 +340,7 @@ module Import
       end
 
       def add_variant_class(variant)
-        if variant.is_a?(Integer) && variant >= 1 && variant <= 7
+        if variant.is_a?(Integer) && variant >= 1 && variant <= 9
           @attribute_map['variantpathclass'] = variant
         elsif variant.is_a?(String)
           if VARIANT_CLASS_MAP[variant.downcase.strip]

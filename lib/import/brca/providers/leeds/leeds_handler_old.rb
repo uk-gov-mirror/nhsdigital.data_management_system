@@ -6,7 +6,7 @@ module Import
     module Providers
       module Leeds
         # Process Leeds-specific record details into generalized internal genotype format
-        class LeedsHandlerNew < Import::Germline::ProviderHandler
+        class LeedsHandlerOld < Import::Germline::ProviderHandler
           include Import::Helpers::Brca::Providers::Rr8::Constants
 
           def process_fields(record)
@@ -47,6 +47,9 @@ module Import
             process_genetictestcope(genotype, record)
             assign_teststatus(genotype, record)
             res = process_variants_from_record(genotype, record)
+            # correcting ebatch provider and registry to RR8 (from RR8_2) to allow data to persist in the database
+            @batch.provider = 'RR8'
+            @batch.registryid = 'RR8'
             res.each { |cur_genotype| @persister.integrate_and_store(cur_genotype) }
           end
 

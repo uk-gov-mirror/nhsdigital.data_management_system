@@ -1,13 +1,30 @@
 require 'test_helper'
 
-class LeedsHandlerNewTest < ActiveSupport::TestCase
+class LeedsHandlerOldTest < ActiveSupport::TestCase
   def setup
     @record   = build_raw_record('pseudo_id1' => 'bob')
     @genotype = Import::Brca::Core::GenotypeBrca.new(@record)
     @importer_stdout, @importer_stderr = capture_io do
-      @handler = Import::Brca::Providers::Leeds::LeedsHandlerNew.new(EBatch.new)
+      @handler = Import::Brca::Providers::Leeds::LeedsHandlerOld.new(EBatch.new)
     end
     @logger = Import::Log.get_logger
+  end
+
+  test 'process_fields' do
+    e_batch = EBatch.create(original_filename: 'test_filea',
+                            e_type:            'PSMOLE',
+                            provider:          'RR8_2',
+                            registryid:        'RR8_2')
+    handler = Import::Brca::Providers::Leeds::LeedsHandlerOld.new(e_batch)
+    Import::Brca::Providers::Leeds::LeedsHandlerOld.any_instance.stubs(:should_process).returns(true)
+    handler.process_fields(@record)
+    assert_difference('EBatch.count', 1) do
+      handler.finalize
+    end
+    # confirm batch created now has 'RR8' as provider
+    e_batch.reload
+    assert_equal 'RR8', e_batch.provider
+    assert_equal 'RR8', e_batch.registryid
   end
 
   test 'process_abnormal_fs_record' do

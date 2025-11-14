@@ -53,14 +53,31 @@ RR8 () {
 MBIS=$1
 PROV='RR8'
 IFS=$'\n'
+for x in $(find $DIRPATH/$FILEPATH  -path "*/$PROV/*" -type f \
+\( -name "*BRCA*.pseudo" -o -type f -name "*Other*.pseudo" \) \
+\( -path "*/202[5-9]/*" -o -path "*/203[0-9]/*" \) \
+! -name "bede6d1385c0ae9db4fe61fe9b07d58f86e2dc60_24.11.2021 to 31.03.2025_BRCA_DATA__2021_11_24__to__2025_03_31_b.xlsx.pseudo")
+do
+IFS="$OIFS"
+$BRAKE import:brca fname="$(echo "$x" | sed -e 's:.*pseudonymised_data/\(.*\):\1:')" prov_code=$PROV
+done
+}
+
+# To handle pseudo files before 2025
+RR8_2 () {
+MBIS=$1
+PROV='RR8'
+PROV_OLD_FILE='RR8_2'
+IFS=$'\n'
 for x in $(find  $DIRPATH/$FILEPATH -type f -name "*.pseudo" -path "*/$PROV/*"  \
 -not -path "*/2017-03-17/*" \
+-not -path "*/2025/*" \
   ! -name "3a4d3dc703789864fa6d2b8f5d9fe60749205979_01.01.2013 to 30.09.2018_010113_300918.xlsx.pseudo" \
   ! -name "*MMR*" \
   ! -name "*Colorectal*")
 do
 IFS="$OIFS"
-$BRAKE import:brca fname="$(echo "$x" | sed -e 's:.*pseudonymised_data/\(.*\):\1:')" prov_code=$PROV
+$BRAKE import:brca fname="$(echo "$x" | sed -e 's:.*pseudonymised_data/\(.*\):\1:')" prov_code=$PROV_OLD_FILE
 done
 }
 
@@ -77,7 +94,6 @@ IFS="$OIFS"
 $BRAKE import:brca fname="$(echo "$x" | sed -e 's:.*pseudonymised_data/\(.*\):\1:')" prov_code=$PROV
 done
 }
-
 
 RX1 () {
 MBIS=$1
@@ -256,6 +272,6 @@ done
 }
 
 
-RTD; RQ3; RR8; RNZ; RVJ; RX1; RCU; RJ1; RGT; RPY; R0A; RJ7; RJ7_2 ; RTH; R1K; RP4; REP
+RTD; RQ3; RR8; RR8_2; RNZ; RVJ; RX1; RCU; RJ1; RGT; RPY; R0A; RJ7; RJ7_2 ; RTH; R1K; RP4; REP
 
 
