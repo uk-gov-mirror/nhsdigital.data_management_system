@@ -17,8 +17,9 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version:
-          - '3.2' # Latest ruby 3.2.x
+          - '3.2' # Latest ruby 3.2.x (no longer used, but preserve the option to rollback)
           - '3.3' # Latest ruby 3.3.x
+          - '3.4' # Latest ruby 3.4.x
 
     name: "Ruby ${{ matrix.ruby-version }} Smoke Tests"
 

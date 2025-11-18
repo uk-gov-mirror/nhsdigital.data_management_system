@@ -220,15 +220,16 @@ namespace :bundle do
     # deploying user, rather than the application user.
     # You can override the path using e.g. set :pg_conf_path, '/usr/pgsql-9.5/bin/pg_config'
     # otherwise the latest installed version will be used.
+    # Note that the relevant postgresql-devel package is required, not just postgresql
     run <<~SHELL
       set -e;
       cd #{release_path};
       pg_conf_path="#{fetch(:pg_conf_path, '')}";
       if [ -z "$pg_conf_path" ]; then
-        pg_conf_path=`ls -1d /usr/pgsql-{9,[1-8]*}/bin/pg_config 2> /dev/null | tail -1`;
+        pg_conf_path=`ls -1d /usr/pgsql-{9*,[1-8]*}/include 2> /dev/null | sed -e 's:/include$:/bin/pg_config:' | tail -1`;
       fi;
       if [ -n "$pg_conf_path" ]; then
-        echo Using pg_conf_path=\"$pg_conf_path\";
+        echo Using pg_conf_path=\\"$pg_conf_path\\";
         bundle config --local build.pg --with-pg-config="$pg_conf_path";
       fi
     SHELL

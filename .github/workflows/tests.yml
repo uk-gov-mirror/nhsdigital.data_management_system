@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version:
-          - '3.2.8'
+          - '3.3.9'
         test-group:
           - "[a-b]"
           - "[c]"
@@ -94,7 +94,7 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version:
-          - '3.2.8'
+          - '3.3.9'
         test-group:
           - "[a-z]"
 

@@ -11,9 +11,6 @@ gem 'rails', '~> 7.2.2', '>= 7.2.2.2'
 # Fixes uninitialized constant ActiveSupport::LoggerThreadSafeLevel::Logger on Rails 7.0x
 # and earlier. See https://github.com/rails/rails/issues/54260.
 gem 'concurrent-ruby', '1.3.4'
-# Use old psych for YAML on Ruby 3.1 until we move to Rails 7.0.4
-# so that we can continue to use aliases in config/locales/en.yml
-# cf. https://stackoverflow.com/questions/71191685/visit-psych-nodes-alias-unknown-alias-default-psychbadalias
 gem 'psych', '4.0.4' # Exactly match the version on Ruby 3.1
 gem 'stringio', '3.1.1' # psych dependency: exactly match the default version on Ruby 3.3
 
@@ -62,7 +59,7 @@ gem 'will_paginate'
 # gem 'capistrano-rails', group: :development
 
 # net-imap (via ndr_error) requires date. Puma needs us to stick to the ruby default version.
-gem 'date', '3.1.3' # Lock to Ruby 3.0 version of gem for live service
+gem 'date', '3.3.4' # Lock to Ruby 3.3 version of gem for live service
 
 gem 'ndr_authenticate', '~> 0.3', '>= 0.3.3'
 gem 'ndr_error', '~> 2.0'

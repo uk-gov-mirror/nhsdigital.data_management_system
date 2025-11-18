@@ -1,14 +1,14 @@
 # Data Management System [![Build Status](https://github.com/publichealthengland/data_management_system/workflows/Test/badge.svg)](https://github.com/publichealthengland/data_management_system/actions?query=workflow%3Atest)
 
-* Rails version 6.1.7
-* Ruby version is 3.0.4
+* Rails version 7.2.x
+* Ruby version is 3.3.x
 
 ## System dependencies
 
-  * ndr_dev_support ~> 6.0
+  * ndr_dev_support '~> 7.0'
   * ndr_error '~> 2.0'
   * ndr_support '~> 5.9'
-  * ndr_ui (3.3.1)
+  * ndr_ui '~> 3.3'
 
 ## Configuration
 

@@ -12,7 +12,7 @@ class ProjectDatasetLevel < ApplicationRecord
   validates :status, uniqueness: { scope: %i[access_level_id project_dataset_id] },
                      if: proc { |pdl| %w[request approved renewable].include?(pdl.status) }
 
-  enum status: { request: 1, approved: 2, rejected: 3, renewable: 4, closed: 5 }
+  enum :status, { request: 1, approved: 2, rejected: 3, renewable: 4, closed: 5 }
 
   scope :same_access_level_levels, lambda { |pdl|
     where(project_dataset_id: pdl.project_dataset_id, access_level_id: pdl.access_level_id).
