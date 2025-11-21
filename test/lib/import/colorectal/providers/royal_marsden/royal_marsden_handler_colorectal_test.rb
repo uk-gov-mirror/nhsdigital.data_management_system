@@ -29,6 +29,13 @@ class RoyalMarsdenHandlerColorectalTest < ActiveSupport::TestCase
     @handler.process_varpathclass(@genotype, broken_record)
   end
 
+  test 'process_non_path_varpathclass' do
+    nonpath_record = build_raw_record('pseudo_id1' => 'bob')
+    nonpath_record.raw_fields['teststatus'] = 'Non-pathogenic variant detected'
+    @handler.check_for_other_non_path_variant(@genotype, nonpath_record)
+    assert_equal 6, @genotype.attribute_map['variantpathclass']
+  end
+
   test 'process_teststatus' do
     @handler.process_teststatus(@genotype, @record)
     assert_equal 2, @genotype.attribute_map['teststatus']
@@ -36,6 +43,26 @@ class RoyalMarsdenHandlerColorectalTest < ActiveSupport::TestCase
     broken_record.raw_fields['teststatus'] = nil
     @logger.expects(:debug).with('UNABLE TO DETERMINE TESTSTATUS')
     @handler.process_teststatus(@genotype, broken_record)
+    # test a non-pathogenic variant record
+    nonpath_record = build_raw_record('pseudo_id1' => 'bob')
+    nonpath_record.raw_fields['teststatus'] = 'Non-pathogenic variant detected'
+    @handler.process_teststatus(@genotype, nonpath_record)
+    assert_equal 10, @genotype.attribute_map['teststatus']
+    # test a pathogenic abnormal
+    abnormal_record = build_raw_record('pseudo_id1' => 'bob')
+    abnormal_record.raw_fields['teststatus'] = 'c.68_69delAG'
+    @handler.process_teststatus(@genotype, abnormal_record)
+    assert_equal 2, @genotype.attribute_map['teststatus']
+    # test a failed  record
+    failed_record = build_raw_record('pseudo_id1' => 'bob')
+    failed_record.raw_fields['teststatus'] = 'Failed'
+    @handler.process_teststatus(@genotype, failed_record)
+    assert_equal 9, @genotype.attribute_map['teststatus']
+    # test a normal record
+    normal_record = build_raw_record('pseudo_id1' => 'bob')
+    normal_record.raw_fields['teststatus'] = 'NO PATHOGENIC VARIANT IDENTIFIED'
+    @handler.process_teststatus(@genotype, normal_record)
+    assert_equal 1, @genotype.attribute_map['teststatus']
   end
 
   test 'process_variant' do

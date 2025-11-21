@@ -97,27 +97,53 @@ module Import
               genocolorectal.add_variant_class(VARIANT_PATH_CLASS_COLO[varpathclass.downcase])
             else
               @logger.debug 'NO VARIANTPATHCLASS DETECTED'
+              check_for_other_non_path_variant(genocolorectal, record)
             end
           end
 
+          def check_for_other_non_path_variant(genocolorectal, record)
+            return unless /non-pathogenic\svariant\sdetected/i.match(record.raw_fields['teststatus'])
+
+            # ad-hoc class - known pathogenic but we can't distinguish between class 1/2
+            genocolorectal.add_variant_class(6)
+          end
+
+    
           def process_teststatus(genocolorectal, record)
             teststatus = record.raw_fields['teststatus'] unless record.raw_fields['teststatus'].nil?
-            if /NO PATHOGENIC (VARIANT|DEL\/DUP) IDENTIFIED/.match(teststatus) ||
-               /non-pathogenic variant detected/.match(teststatus) ||
-               /No mutation detected/.match(teststatus)
+            if normal?(teststatus)
               genocolorectal.add_status(1)
-            elsif /Fail/i.match(teststatus)
+            elsif non_pathogenic?(teststatus)
+              genocolorectal.add_status(10)
+            elsif failed?(teststatus)
               genocolorectal.add_status(9)
-            elsif /c\..+/.match(teststatus) ||
-                  /Deletion*/.match(teststatus) ||
-                  /Duplication*/.match(teststatus) ||
-                  /Exon*/i.match(teststatus)
-                  genocolorectal.add_status(2)
+            elsif abnormal?(teststatus)
+              genocolorectal.add_status(2)
             else
               @logger.debug 'UNABLE TO DETERMINE TESTSTATUS'
             end
           end
 
+          def normal?(teststatus)
+            %r{no pathogenic (variant|del/dup) identified}i.match(teststatus) ||
+              /no mutation detected/i.match(teststatus)
+          end
+
+          def non_pathogenic?(teststatus)
+            /non-pathogenic\svariant\sdetected/i.match(teststatus)
+          end
+
+          def failed?(teststatus)
+            /Fail/i.match(teststatus)
+          end
+
+          def abnormal?(teststatus)
+            /c\..+/i.match(teststatus) ||
+              /deletion*/i.match(teststatus) ||
+              /duplication*/i.match(teststatus) ||
+              /exon*/i.match(teststatus)
+          end
+         
           def process_variant(genocolorectal, record)
             variant = record.raw_fields['teststatus'] unless record.raw_fields['teststatus'].nil?
             if CDNA_REGEX_PROT.match(variant)
