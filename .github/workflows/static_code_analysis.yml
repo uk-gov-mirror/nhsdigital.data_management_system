@@ -30,6 +30,18 @@ jobs:
         run: bundle exec bundle-audit check --update --ignore CVE-2024-6484
         # run: bundle exec bundle-audit check --update
 
+  yarn-audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Ruby + Bundle
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - name: Audit the yarn npm packages
+        run: script/yarn_audit.sh
+
 #  notify:
 #    # Run only on main, but regardless of whether tests past:
 #    if: ${{ always() }}
