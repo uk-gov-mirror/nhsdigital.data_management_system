@@ -16,11 +16,16 @@ module Import
         #--------------------- Schema code mapping tables --------------------------
 
         COLORECTAL_MAP = { 'APC' => 358,
+                           'BAP1' => 517,
                            'BMPR1A' => 577,
                            'EPCAM' => 1432,
-                           'TACSTD1' => 1432,
+                           'TACSTD1' => 1432, #Old symbol for EPCAM
+                           'FH' => 1590,
+                           'FLCN' => 1603,
+                           'MET' => 50,
                            'MLH1' => 2744,
                            'MSH2' => 2804,
+                           'MSH3' => 2805,
                            'MSH6' => 2808,
                            'MUTYH' => 2850,
                            'PMS2' => 3394,
@@ -42,14 +47,21 @@ module Import
                            'RAD51D' => 3616,
                            'VHL' => 83,
                            'ATM' => 451,
-                           'SCG5' => 5092 }.freeze
+                           'SCG5' => 5092,
+                           'SDHB' => 68
+                         }.freeze
 
         COLORECTAL_REGEX = /(?<apc>APC)|
+                            (?<bap1>BAP1)|
                             (?<bmpr>BMPR1A)|
                             (?<epcam>EPCAM)|
-                            (?<tacstd1>TACSTD1)|
+                            (?<tacstd1>TACSTD1)| #Old symbol for EPCAM
+                            (?<fh>FH)|
+                            (?<flcn>FLCN)|
+                            (?<met>MET)|
                             (?<mlh1>MLH1)|
                             (?<msh2>MSH2)|
+                            (?<msh3>MSH3)|
                             (?<msh6>MSH6)|
                             (?<mutyh>MUTYH)|
                             (?<pms2>PMS2)|
@@ -71,15 +83,16 @@ module Import
                             (?<rad51d>RAD51D)|
                             (?<vhl>VHL) |
                             (?<atm>ATM) |
-                            (?<scg5>SCG5)/ix # Added by Francesco
+                            (?<scg5>SCG5)|
+                            (?<sdhb>SDHB)/ix # Added by Francesco
 
         # ------------------------ Interogators ------------------------------
 
         def add_gene_colorectal(colorectal_input)
           case colorectal_input
           when Integer
-            if [1432, 358, 577, 2744, 2804, 2808, 2850, 3394, 7, 8, 79, 3186, 5019,
-                3408, 5000, 62, 72, 76, 1882, 3108, 794, 83, 5019, 451].include? colorectal_input
+            if [1432, 358, 517, 577, 2744, 2804, 2805, 2808, 2850, 3394, 7, 8, 79, 3186, 5019, 1603, 50, 68,
+                3408, 5000, 62, 72, 76, 1882, 3108, 794, 83, 5019, 451, 1590, 5092].include? colorectal_input
 
               @attribute_map['gene'] = colorectal_input
               @logger.debug "SUCCESSFUL gene parse for #{colorectal_input}"

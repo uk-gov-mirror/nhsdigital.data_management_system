@@ -3,8 +3,8 @@ module Import
     module Providers
       module Leeds
         # rubocop:disable Metrics/ClassLength
-        # Leeds importer for colorectal
-        class LeedsHandlerColorectal < Import::Germline::ProviderHandler
+        # Leeds importer for colorectal (pre-2025 format)
+        class LeedsHandlerColorectalV1 < Import::Germline::ProviderHandler
           include Import::Helpers::Colorectal::Providers::Rr8::Constants
 
           def initialize(batch)
@@ -53,6 +53,9 @@ module Import
             add_varclass
             add_organisationcode_testresult(genocolorectal)
             res = process_variants_from_record(genocolorectal, record)
+            # correcting ebatch provider and registry to RR8 (from RR8_V1_PRE2025) to allow data to persist in the database
+            @batch.provider = 'RR8'
+            @batch.registryid = 'RR8'
             res.map { |cur_genotype| @persister.integrate_and_store(cur_genotype) }
           end
 

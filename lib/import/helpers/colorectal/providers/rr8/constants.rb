@@ -43,17 +43,21 @@ module Import
                                     'instigated_date' => 'requesteddate' }.freeze
 
             GENES = 'APC|ATM|BAP1|BMPR1A|BRCA1|BRCA2|CHEK2|EPCAM|FH|FLCN|GREM1|MET|
-                     MLH1|MSH2|MSH6|MUTYH|NTHL1|PALB2|PMS2|POLD1|POLE|PTEN|RAD51C|RAD51D|
+                     MLH1|MSH2|MSH3|MSH6|MUTYH|NTHL1|PALB2|PMS2|POLD1|POLE|PTEN|RAD51C|RAD51D|
                      RNF43|SDHB|SMAD4|STK11|TP53|VHL'.freeze
 
             # rubocop:disable Lint/MixedRegexpCaptureTypes
             MMR_GENE_REGEX = /APC|BMPR1A|EPCAM|GREM1|MLH1|MSH2|MSH6|MUTYH|NTHL1|PMS2|POLD1|
-                              POLE|PTEN|SMAD4|STK11/ix
-            CDNA_REGEX = /c\.(?<cdna>[\w+>*\-]+)?/ix
+                              POLE|PTEN|SMAD4|STK11|RNF43/ix
+
+            CDNA_REGEX = /c\.(?<cdna>[\w.+>*\-]+)/ix
             PROTEIN_REGEX = /\(?p\.\(?(?<impact>\w+)\)?/ix
             EXON_REGEX = /(?<exon>exon(s)?[\s\-\d]+)/ix
             GENE_FAIL_REGEX = /(?=(?<gene>#{GENES})[\w\s]+fail)/ix
             NOPATH_REGEX = /.No pathogenic variant was identified./i
+
+            PATIENT_SCREENED_REGEX = /((?:This\s+patient(?:'s\s+sample)?\s+has\s+been\s+screened|
+                                         this\s+patient\s+is\s+heterozygous\s+for)[^.]*\.)/imx
             EXON_VARIANT_REGEX = /(?<variant>del|dup|ins).+ex(on)?s?\s?
                                   (?<exons>[0-9]+(-[0-9]+)?)|
                                   ex(on)?s?\s?(?<exons>[0-9]+(-[0-9]+)?)\s?
@@ -190,6 +194,8 @@ module Import
               'developing further MSH2-related cancers',
               'developing MSH2-associated cancer'
             ].freeze
+
+            REF_TRANSCRIPT_ID = /NM_\d{6}\.\d(?=:)/ix
           end
         end
       end

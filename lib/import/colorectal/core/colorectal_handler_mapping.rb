@@ -4,7 +4,8 @@ module Import
       # Provides the handler appropriate for the dataformat from each center
       class ColorectalHandlerMapping
         HANDLER_MAPPING = {
-          'RR8' => Import::Colorectal::Providers::Leeds::LeedsHandlerColorectal,
+          'RR8_V1_PRE2025' => Import::Colorectal::Providers::Leeds::LeedsHandlerColorectalV1,
+          'RR8_V2_POST2025' => Import::Colorectal::Providers::Leeds::LeedsHandlerColorectalV2,
           'RNZ' => Import::Colorectal::Providers::Salisbury::SalisburyHandlerColorectal,
           'RTD' => Import::Colorectal::Providers::Newcastle::NewcastleHandlerColorectal,
           'RX1' => Import::Colorectal::Providers::Nottingham::NottinghamHandlerColorectal,

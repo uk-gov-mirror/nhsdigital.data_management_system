@@ -18,7 +18,6 @@ module Import
                           genomicchange
                           clinvarid
                           cosmicid
-                          variantgenotype
                           variantallelefrequency
                           variantreport
                           raw_record
@@ -27,9 +26,9 @@ module Import
 
       # Should not produce a variant record unless there actually is a variant
       def produce_record
-        # if (@field_names -  ['variantpathclass']).all?
-        # {|x| @representative_genotype.attribute_map[x].nil?}
-        if @field_names.all? { |x| @representative_genotype.attribute_map[x].nil? }
+        # Only create a sequence variant if there are meaningful variant fields beyond just genotype
+        meaningful_fields = @field_names - ['variantgenotype']
+        if meaningful_fields.all? { |x| @representative_genotype.attribute_map[x].nil? }
           nil
         else
           super()

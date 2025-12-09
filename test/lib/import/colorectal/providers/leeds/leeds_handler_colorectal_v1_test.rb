@@ -1,13 +1,30 @@
 require 'test_helper'
 
-class LeedsHandlerColorectalTest < ActiveSupport::TestCase
+class LeedsHandlerColorectalV1Test < ActiveSupport::TestCase
   def setup
     @record   = build_raw_record('pseudo_id1' => 'bob')
     @genotype = Import::Colorectal::Core::Genocolorectal.new(@record)
     @importer_stdout, @importer_stderr = capture_io do
-      @handler = Import::Colorectal::Providers::Leeds::LeedsHandlerColorectal.new(EBatch.new)
+      @handler = Import::Colorectal::Providers::Leeds::LeedsHandlerColorectalV1.new(EBatch.new)
     end
     @logger = Import::Log.get_logger
+  end
+
+  test 'process_fields' do
+    e_batch = EBatch.create(original_filename: 'test_filea',
+                            e_type: 'PSMOLE',
+                            provider: 'RR8_2',
+                            registryid: 'RR8_2')
+    handler = Import::Colorectal::Providers::Leeds::LeedsHandlerColorectalV1.new(e_batch)
+    Import::Colorectal::Providers::Leeds::LeedsHandlerColorectalV1.any_instance.stubs(:should_process?).returns(true)
+    handler.process_fields(@record)
+    assert_difference('EBatch.count', 1) do
+      handler.finalize
+    end
+    # confirm batch created now has 'RR8' as provider
+    e_batch.reload
+    assert_equal 'RR8', e_batch.provider
+    assert_equal 'RR8', e_batch.registryid
   end
 
   test 'add_positive_teststatus' do
@@ -102,7 +119,7 @@ class LeedsHandlerColorectalTest < ActiveSupport::TestCase
     assert_equal 5, genotypes[0].attribute_map['variantpathclass']
     assert_equal 2, genotypes[0].attribute_map['teststatus']
     assert_equal 2804, genotypes[0].attribute_map['gene']
-    assert_equal 'c.488T>G', genotypes[0].attribute_map['codingdnasequencechange']
+    assert_equal 'c.488T>G.', genotypes[0].attribute_map['codingdnasequencechange']
     assert_equal 'Targeted Colorectal Lynch or MMR', genotypes[0].attribute_map['genetictestscope']
   end
 

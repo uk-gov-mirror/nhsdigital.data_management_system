@@ -30,13 +30,34 @@ $BRAKE import:colorectal fname="$(echo "$x" | sed -e 's:.*pseudonymised_data/\(.
 done
 }
 
-RR8 () {
+RR8_V2_POST2025 () {
 PROV='RR8'
 IFS=$'\n'
-for x in $(find  $DIRPATH/$FILEPATH  -not -path "*/API_BETA_RETRIEVED/*" -type f -name "*MMR*.pseudo" -o -type f -name "*other*.pseudo" -path "*/$PROV/*")
+for x in $(find "$DIRPATH/$FILEPATH" \
+        -type f \
+        -not -path "*/API_BETA_RETRIEVED/*" \
+        -path "*/$PROV/*" \
+        \( -name "*MMR*.pseudo" -o -iname "*Colorectal*.pseudo" -o -iname "*other*.pseudo" \) \
+        \( -path "*/202[5-9]/*" -o -path "*/203[0-9]/*" \) \
+    )
 do
 IFS="$OIFS"
-$BRAKE import:colorectal fname="$(echo "$x" | sed -e 's:.*pseudonymised_data/\(.*\):\1:')" prov_code=$PROV
+$BRAKE import:colorectal fname="$(echo "$x" | sed -e 's:.*pseudonymised_data/\(.*\):\1:')" prov_code='RR8_V2_POST2025'
+done
+}
+
+RR8_V1_PRE2025 () {
+PROV='RR8'
+IFS=$'\n'
+for x in $(find "$DIRPATH/$FILEPATH" \
+        -not -path "*/API_BETA_RETRIEVED/*" \
+        -not -path "*/2025/*" \
+        -path "*/$PROV/*" \
+        \( -name "*MMR*.pseudo" -o -name "*other*.pseudo" \) \
+    )
+do
+IFS="$OIFS"
+$BRAKE import:colorectal fname="$(echo "$x" | sed -e 's:.*pseudonymised_data/\(.*\):\1:')" prov_code='RR8_V1_PRE2025'
 done
 }
 
@@ -171,5 +192,5 @@ $BRAKE import:colorectal fname="$(echo "$x" | sed -e 's:.*pseudonymised_data/\(.
 done
 }
 
-RR8; RNZ; RTD; RX1; RCU; RGT; R0A; R1K; RPY; RP4; RTH; RQ3; REP; RJ7
+RR8_V2_POST2025; RR8_V1_PRE2025; RNZ; RTD; RX1; RCU; RGT; R0A; R1K; RPY; RP4; RTH; RQ3; REP; RJ7
 

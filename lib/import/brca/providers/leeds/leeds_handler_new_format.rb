@@ -384,7 +384,6 @@ module Import
           end
 
           def classify_protein_impact
-            require 'pry'
             case @value1
             when /C1/
               1

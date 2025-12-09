@@ -54,7 +54,7 @@ MBIS=$1
 PROV='RR8'
 IFS=$'\n'
 for x in $(find $DIRPATH/$FILEPATH  -path "*/$PROV/*" -type f \
-\( -name "*BRCA*.pseudo" -o -type f -name "*Other*.pseudo" \) \
+\( -name "*BRCA*.pseudo" -o -type f -iname "*Other*.pseudo" \) \
 \( -path "*/202[5-9]/*" -o -path "*/203[0-9]/*" \) \
 ! -name "bede6d1385c0ae9db4fe61fe9b07d58f86e2dc60_24.11.2021 to 31.03.2025_BRCA_DATA__2021_11_24__to__2025_03_31_b.xlsx.pseudo")
 do
