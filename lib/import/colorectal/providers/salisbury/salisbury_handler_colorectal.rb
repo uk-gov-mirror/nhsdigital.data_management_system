@@ -111,7 +111,7 @@ module Import
           def process_single_cdna_variant(colo_string, geno_string, genocolorectal, genotypes)
             genocolorectal.add_gene_colorectal(colo_string.match(
               COLORECTAL_GENES_REGEX
-            )[:colorectal])
+            )&.[](:colorectal))
             genocolorectal.add_status(:positive)
             genocolorectal.add_gene_location(geno_string.match(GENE_LOCATION_REGEX)[:cdna])
             genocolorectal.add_protein_impact(geno_string.match(GENE_LOCATION_REGEX)[:impact])
@@ -122,7 +122,7 @@ module Import
             genocolorectal.set_negative
             genocolorectal.add_gene_colorectal(colo_string.match(
               COLORECTAL_GENES_REGEX
-            )[:colorectal])
+            )&.[](:colorectal))
             genotypes.append(genocolorectal)
           end
 
