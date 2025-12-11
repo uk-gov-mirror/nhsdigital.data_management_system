@@ -231,7 +231,14 @@ RTH () {
 MBIS=$1
 PROV='RTH'
 IFS=$'\n'
-for x in $(find  $DIRPATH/$FILEPATH -type f -name "*.pseudo" -path "*/$PROV/*")
+for x in $(find  $DIRPATH/$FILEPATH -type f -name "*.pseudo" -path "*/$PROV/*" \
+-not -path "*/2024-05-16/*" \
+-not -path "*/2024-05-31/*" \
+-not -path "*/2024-06*/*" \
+-not -path "*/2024-07*/*" \
+-not -path "*/2024-08*/*" \
+-not -path "*/2024-09*/*" \
+-not -path "*/2025/*" )
 do
 IFS="$OIFS"
 $BRAKE import:brca fname="$(echo "$x" | sed -e 's:.*pseudonymised_data/\(.*\):\1:')" prov_code=$PROV
