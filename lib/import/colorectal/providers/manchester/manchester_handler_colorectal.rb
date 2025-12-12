@@ -139,7 +139,7 @@ module Import
               exon = raw_record['exon']
               genotype2 = raw_record['genotype2']
               next if MSH6_DOSAGE_MTYPE.include?(moltesttype) && !exon.scan(/MLPA/i).size.positive?
-              next if moltesttype&.match?(/dosage/i) && !exon.match?(/MLPA|P003/i)
+              next if /dosage/i.match?(moltesttype) && !/MLPA|P003/i.match?(exon)
 
               genes_found << find_genes_genotype(exon, moltesttype, genotype, genotype2)
             end
@@ -150,9 +150,9 @@ module Import
             exon_genes = exon&.scan(COLORECTAL_GENES_REGEX).to_a
             genotype_genes = genotype&.scan(COLORECTAL_GENES_REGEX).to_a
             genotype2_genes = genotype2&.scan(COLORECTAL_GENES_REGEX).to_a
-            if exon.match?('NGS')
+            if /NGS/.match?(exon)
               genotype == 'No pathogenic variant identified' ? exon_genes : genotype_genes
-            elsif exon.match?(/P003/i) && moltesttype&.match?(/dosage/i)
+            elsif /P003/i.match?(exon) && /dosage/i.match?(moltesttype)
               %w[MLH1 MSH2] + [genotype_genes + genotype2_genes]
             elsif exon == 'MLH1_MSH2_MSH6_NGS-POOL' &&
                   genotype == 'No pathogenic variant identified'
