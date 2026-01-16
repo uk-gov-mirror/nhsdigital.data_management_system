@@ -90,6 +90,8 @@ for x in $(find $DIRPATH/$FILEPATH -type f -path "*/$PROV/*" \
 	-name "*b20327dfab493e86e7f65e89663fb551*pseudo" \) \
 ! -iname "*NON_BRCA_CRC*" \
 ! -iname "*NonBRCA_CRC*" \
+! -iname "*non_BrOvCa_CRC*" \
+! -iname "*NonBrOvCa_CRC*" \
 ! -iname "*Non_CRC*" \
 ! -iname "*nonBRCA_nonCRC*" \
 ! -iname "*NonBRCA_NonColorectal*" \
