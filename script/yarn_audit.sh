@@ -1,8 +1,37 @@
 #!/bin/bash
 # Script yarn_audit.sh
 # Runs a yarn audit, but ignores accepted yarn warnings, and pretty-prints errors in JSON
+case "$1" in
+    upgrade)
+        echo Updating yarn packages
+        rm -rf vendor/npm-packages-offline-cache
+        yarn cache clean
+        yarn upgrade
+        echo Any yarn file changes will be in: vendor/npm-packages-offline-cache/ yarn.lock
+        exit
+        ;;
+    audit | "")
+        # Default behaviour: fall through
+        SHOW_USAGE=0
+        ;;
+    *)
+        SHOW_USAGE=1
+        ;;
+esac
 
-# YARN_IGNROE is a list of accepted yarn warnings, space separated:
+if [ "$SHOW_USAGE" = "1" ]; then
+    echo "Usage: `basename "$0"` [audit]  # runs yarn audit, ignoring accepted warnings"
+    echo "       `basename "$0"` upgrade  # runs yarn upgrade and updates vendor/npm-packages-offline-cache/"
+    echo "       `basename "$0"` help     # displays this message"
+    if [ "$1" = "help" ] || [ "$1" = "-help" ] || [ "$1" = "--help" ]; then
+        exit 0
+    else
+        echo "Error: Unknown arguments" >&2
+        exit 1
+    fi
+fi
+
+# YARN_IGNORE is a list of accepted yarn warnings, space separated:
 # Path traversal in webpack-dev-middleware
 YARN_IGNORE="GHSA-wr3j-pwj9-hqq6"
 # Uncontrolled resource consumption in braces
@@ -19,6 +48,12 @@ YARN_IGNORE="$YARN_IGNORE GHSA-5gfm-wpxj-wjgq"
 YARN_IGNORE="$YARN_IGNORE GHSA-rp65-9cf3-cjxr"
 # ip SSRF improper categorization in isPublic
 YARN_IGNORE="$YARN_IGNORE GHSA-2p57-rm9w-gvfp"
+# node-tar is Vulnerable to Arbitrary File Overwrite and Symlink Poisoning via Insufficient Path Sanitization
+YARN_IGNORE="$YARN_IGNORE GHSA-8qq5-rm4j-mr97"
+# Race Condition in node-tar Path Reservations via Unicode Ligature Collisions on macOS APFS
+YARN_IGNORE="$YARN_IGNORE GHSA-r6q2-hw4h-h46w"
+# node-tar Vulnerable to Arbitrary File Creation/Overwrite via Hardlink Path Traversal
+YARN_IGNORE="$YARN_IGNORE GHSA-34x7-hfp2-rc4v"
 
 YARN_IGNORE_JSON="`echo $YARN_IGNORE | sed -e 's/^/"/' -e 's/$/"/' -e 's/ /", "/g'`"
 echo "yarn audit --no-progress --level high --json"
@@ -38,8 +73,8 @@ done
 if cat yarn_audit.json | jq -c 'select ( .type == "auditAdvisory" and (.data.advisory.github_advisory_id | IN ('"$YARN_IGNORE_JSON"') | not) )' | jq -Me; then
    echo
    echo Warning: New yarn audit vulnerabilities found in yarn.lock, listed above.
-   echo Run yarn upgrade, or update YARN_IGNORE in script/yarn_audit.sh
-   echo with accepted github_advisory_id values.
+   echo Run script/yarn_audit.sh upgrade, or update YARN_IGNORE in
+   echo script/yarn_audit.sh with accepted github_advisory_id values.
    exit 1
 else
    rm -f yarn_audit.json
