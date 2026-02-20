@@ -85,10 +85,7 @@ class NotificationRecipientsTest < ActionDispatch::IntegrationTest
       project.project_comments.create(user: project.owner, project_node: node, comment: 'Justify!!')
     end
 
-    sign_in project.owner
-
-    visit terms_and_conditions_path
-    click_link 'Accept'
+    login_and_accept_terms(project.owner)
     
     visit project_path(project)
 
@@ -109,10 +106,7 @@ class NotificationRecipientsTest < ActionDispatch::IntegrationTest
   test 'project submitted to odr' do
     project = projects(:pending_delegate_project)
 
-    sign_in users(:delegate_user1)
-
-    visit terms_and_conditions_path
-    click_link 'Accept'
+    login_and_accept_terms(users(:delegate_user1))
 
     visit project_path(project)
 

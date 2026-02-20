@@ -10,9 +10,7 @@ class ApplicationProjectTest < ActionDispatch::IntegrationTest
 
     @project = projects(:test_application)
 
-    sign_in @user
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(@user)
   end
 
   # TODO: Complete coverage

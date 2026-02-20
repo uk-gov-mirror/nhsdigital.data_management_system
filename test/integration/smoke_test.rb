@@ -10,6 +10,7 @@ class SmokeTest < ActionDispatch::IntegrationTest
   test 'sign in and accept terms' do
     sign_in @user
     visit terms_and_conditions_path
+    assert_text @user.email
     click_on 'Accept'
     assert page.has_content?('Notifications')
     visit terms_and_conditions_path
@@ -19,6 +20,7 @@ class SmokeTest < ActionDispatch::IntegrationTest
   test 'sign in and reject terms' do
     sign_in @user
     visit terms_and_conditions_path
+    assert_text @user.email
     click_on 'Reject'
     assert page.has_content?('You have 2 attempts to approve the terms and then your account will be locked')
     assert page.has_content?('Welcome to the Data Management System')

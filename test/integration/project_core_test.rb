@@ -11,9 +11,7 @@ class ProjectCoreTest < ActionDispatch::IntegrationTest
   end
 
   test 'sign in and visit project page, standard user' do
-    sign_in @user
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(@user)
     visit projects_path
     assert page.has_content?('Notifications')
     visit terms_and_conditions_path
@@ -21,9 +19,7 @@ class ProjectCoreTest < ActionDispatch::IntegrationTest
   end
 
   test 'sign in and visit project page, odr user' do
-    sign_in @odr
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(@odr)
     visit projects_path
     assert page.has_content?('Notifications')
     visit terms_and_conditions_path
@@ -31,9 +27,7 @@ class ProjectCoreTest < ActionDispatch::IntegrationTest
   end
 
   test 'sign in and visit project page, admin user' do
-    sign_in @admin
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(@admin)
     visit projects_path
     assert page.has_content?('Notifications')
     visit terms_and_conditions_path
@@ -43,9 +37,7 @@ class ProjectCoreTest < ActionDispatch::IntegrationTest
   test 'reset project approvals' do
     project = projects(:pending_project)
 
-    sign_in @odr
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(@odr)
     visit project_path(project)
     click_link('Project Details')
 
@@ -53,9 +45,9 @@ class ProjectCoreTest < ActionDispatch::IntegrationTest
       within('#approve_details_status') do
         click_button 'Approve'
 
-        assert has_no_button? 'Approve'
-        assert has_text? 'APPROVED'
       end
+      assert_text 'APPROVED'
+      assert has_no_button? 'Approve'
     end
 
     accept_prompt do
@@ -68,9 +60,7 @@ class ProjectCoreTest < ActionDispatch::IntegrationTest
 
 =begin
   test 'soft delete a project' do
-    sign_in @admin
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(@admin)
     visit project_path(projects(:new_project))
     click_on 'Delete'
     assert page.has_content?('Project was successfully destroyed.')
@@ -78,9 +68,7 @@ class ProjectCoreTest < ActionDispatch::IntegrationTest
 =end
 
   test 'should error if no permission to show project' do
-    sign_in users(:standard_user_multiple_teams)
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(users(:standard_user_multiple_teams))
     @project = projects(:approved_project)
     visit project_path(@project)
   end
@@ -88,10 +76,7 @@ class ProjectCoreTest < ActionDispatch::IntegrationTest
   test 'successful project allocation' do
     assigned_user = users(:application_manager_two)
 
-    sign_in @odr
-
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(@odr)
 
     visit project_path(@eoi)
 
@@ -102,12 +87,12 @@ class ProjectCoreTest < ActionDispatch::IntegrationTest
             select 'Application Manager Two', from: 'Application Manager'
             click_button 'Apply'
           end
+          assert_text 'EOI was successfully assigned'
         end
       end
     end
 
     assert_current_path project_path(@eoi)
-    assert page.has_text? 'EOI was successfully assigned'
     assert_equal assigned_user, @eoi.reload.assigned_user
 
     open_email assigned_user.email
@@ -118,10 +103,7 @@ class ProjectCoreTest < ActionDispatch::IntegrationTest
   test 'unsuccessful project allocation' do
     Project.any_instance.stubs(save: false)
 
-    sign_in @odr
-
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(@odr)
 
     visit project_path(@eoi)
 
@@ -144,10 +126,7 @@ class ProjectCoreTest < ActionDispatch::IntegrationTest
 
     project = projects(:pending_delegate_project)
 
-    sign_in users(:delegate_user1)
-
-    visit terms_and_conditions_path
-    click_link 'Accept'
+    login_and_accept_terms(users(:delegate_user1))
     visit project_path(project)
 
     accept_prompt do
@@ -158,10 +137,7 @@ class ProjectCoreTest < ActionDispatch::IntegrationTest
   end
 
   test 'should get dashboard page' do
-    sign_in @odr
-
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(@odr)
 
     within '.navbar' do
       assert_nothing_raised do
@@ -181,7 +157,7 @@ class ProjectCoreTest < ActionDispatch::IntegrationTest
     project.update!(parent: parent, owner: @user)
     child.update!(parent: project, owner: @user)
 
-    sign_in @user
+    login_and_accept_terms(@user)
 
     visit project_path(project)
 

@@ -9,10 +9,7 @@ class WorkflowTest < ActionDispatch::IntegrationTest
     project.update(details_approved: true, members_approved: true, legal_ethical_approved: true)
     project.project_nodes.update_all(approved: true)
 
-    sign_in users(:odr_user)
-
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(users(:odr_user))
 
     visit project_path(project)
     assert_current_path project_path(project)
@@ -34,10 +31,7 @@ class WorkflowTest < ActionDispatch::IntegrationTest
     project.update(details_approved: true, members_approved: true, legal_ethical_approved: true)
     project.project_nodes.update_all(approved: true)
 
-    sign_in users(:odr_user)
-
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(users(:odr_user))
 
     visit project_path(project)
     assert_current_path project_path(project)

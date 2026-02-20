@@ -90,7 +90,7 @@ module Workflow
 
     def transition_email(**options, &block)
       # For translation lookup purposes. If not already set, infer from the calling method.
-      @i18n_prefix ||= caller_locations.first.label
+      @i18n_prefix ||= caller_locations.first.base_label
 
       subject = t(
         :subject,

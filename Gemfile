@@ -66,7 +66,7 @@ gem 'ndr_error', '~> 2.0'
 gem 'ndr_import'
 gem 'ndr_pseudonymise', '~> 0.4.1'
 gem 'ndr_support', '~> 5.9'
-gem 'ndr_ui', '~> 3.3'
+gem 'ndr_ui', '~> 4.1'
 gem 'ndr_workflow', '~> 1.2', '>= 1.2.2'
 
 gem 'bootstrap-table-rails', '~> 1.20.2'

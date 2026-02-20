@@ -3,11 +3,7 @@ require 'test_helper'
 class ProjectImportTest < ActionDispatch::IntegrationTest
   def setup
     @user = users(:application_manager_one)
-
-    sign_in @user
-
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(@user)
   end
 
   test 'should not be able to import application PDF forms without an :application_manager role' do
@@ -66,6 +62,7 @@ class ProjectImportTest < ActionDispatch::IntegrationTest
 
         click_button 'OK'
       end
+      assert_no_text 'Could not import file!'
     end
 
     # Wrong file type...
@@ -82,6 +79,7 @@ class ProjectImportTest < ActionDispatch::IntegrationTest
 
         click_button 'OK'
       end
+      assert_no_text 'Could not import file!'
     end
 
     # Bad PDF...
@@ -99,6 +97,7 @@ class ProjectImportTest < ActionDispatch::IntegrationTest
 
         click_button 'OK'
       end
+      assert_no_text 'Could not import file!'
     end
   end
 
@@ -150,5 +149,9 @@ class ProjectImportTest < ActionDispatch::IntegrationTest
     visit edit_project_path(project)
 
     assert has_no_text?('Drag and drop PDF here')
+  end
+
+  def fixture_path
+    fixture_paths[0]
   end
 end

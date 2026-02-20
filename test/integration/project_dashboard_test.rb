@@ -6,15 +6,13 @@ class ProjectDashboardTest < ActionDispatch::IntegrationTest
   end
 
   test 'sign in and visit project page, application manager' do
-    sign_in users(:application_manager_three)
     cas_project = create_project(project_type: project_types(:cas),
                                  owner: users(:application_manager_three))
     cas_project2 = create_project(project_type: project_types(:cas),
                                   owner: users(:standard_user))
     eoi_project = create_project(project_type: project_types(:eoi), project_purpose: 'test',
                                  owner: users(:application_manager_three))
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(users(:application_manager_three))
     visit dashboard_projects_path
     within('#projects-table', match: :first) do
       assert has_content?('Project Title')
@@ -48,15 +46,14 @@ class ProjectDashboardTest < ActionDispatch::IntegrationTest
   end
 
   test 'sign in and visit project page, mbis delegate' do
-    sign_in users(:delegate_user1)
+
     cas_project = create_project(project_type: project_types(:cas),
                                  owner: users(:delegate_user1))
     cas_project2 = create_project(project_type: project_types(:cas),
                                   owner: users(:standard_user))
     mbis_project = create_project(project_type: project_types(:project), project_purpose: 'test',
                                   owner: users(:delegate_user1))
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(users(:delegate_user1))
     visit dashboard_projects_path
 
     assert has_content?('Unassigned Projects')
@@ -88,15 +85,13 @@ class ProjectDashboardTest < ActionDispatch::IntegrationTest
   end
 
   test 'sign in and visit project page, mbis applicant' do
-    sign_in users(:standard_user1)
     cas_project = create_project(project_type: project_types(:cas),
                                  owner: users(:standard_user1))
     cas_project2 = create_project(project_type: project_types(:cas),
                                   owner: users(:no_roles))
     mbis_project = create_project(project_type: project_types(:project), project_purpose: 'test',
                                   owner: users(:standard_user1))
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(users(:standard_user1))
     visit dashboard_projects_path
 
     assert has_content?('Unassigned Projects')

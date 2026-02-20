@@ -5,9 +5,7 @@ class TeamCoreTest < ActionDispatch::IntegrationTest
     @admin        = users(:admin_user)
     @organisation = organisations(:test_organisation_one)
 
-    sign_in @admin
-    visit terms_and_conditions_path
-    click_on 'Accept'
+    login_and_accept_terms(@admin)
     visit organisation_teams_path(@organisation)
   end
 
