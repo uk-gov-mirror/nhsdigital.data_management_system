@@ -106,12 +106,11 @@ end
 set :asset_script, <<~SHELL
   set -e
   cp config/database.yml.sample config/database.yml
-  ruby -e "require 'yaml'; puts YAML.dump('production' => { 'secret_key_base' => 'compile_me' })" > config/secrets.yml
   touch config/special_users.production.yml config/admin_users.yml config/odr_users.yml \
         config/user_yubikeys.yml
   printf 'disable-self-update-check true\\nyarn-offline-mirror "./vendor/npm-packages-offline-cache"\\nyarn-offline-mirror-pruning false\\n' > .yarnrc
-  RAILS_ENV=production bundle exec rake yarn:install assets:clobber assets:precompile
-  rm config/secrets.yml config/database.yml
+  RAILS_ENV=production SECRET_KEY_BASE_DUMMY=1 bundle exec rake yarn:install assets:clobber assets:precompile
+  rm tmp/local_secret.txt config/database.yml
 SHELL
 
 namespace :delayed_job do
