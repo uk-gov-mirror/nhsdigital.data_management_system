@@ -11,3 +11,12 @@ updates:
       interval: "daily"
     vendor: true
     open-pull-requests-limit: 0 # Disable gem updates. Does not affect security updates.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    # Ignore all npm updates, because we have our own GitHub Actions solution using yarn audit
+    # and because Dependabot does not populate vendor/npm-packages-offline-cache/
+    exclude-paths:
+      - "*"
+    open-pull-requests-limit: 0 # Disable version updates for npm dependencies
