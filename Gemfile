@@ -73,7 +73,7 @@ gem 'bootstrap-table-rails', '~> 1.20.2'
 gem 'caxlsx', '~> 4'
 
 gem 'loofah', '>= 2.3.1' # address CVE-2019-15587
-gem 'nokogiri', '~> 1.11'
+gem 'nokogiri', '~> 1.19'
 gem 'regexp-examples'
 
 gem 'jquery-rails'
