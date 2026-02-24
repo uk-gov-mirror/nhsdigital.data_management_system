@@ -31,31 +31,36 @@ if [ "$SHOW_USAGE" = "1" ]; then
     fi
 fi
 
-# YARN_IGNORE is a list of accepted yarn warnings, space separated:
+# YARN_IGNORE is a list of accepted yarn warnings:
+YARN_IGNORE=()
 # Path traversal in webpack-dev-middleware
-YARN_IGNORE="GHSA-wr3j-pwj9-hqq6"
+YARN_IGNORE+=(GHSA-wr3j-pwj9-hqq6)
 # Uncontrolled resource consumption in braces
-YARN_IGNORE="$YARN_IGNORE GHSA-grv7-fg5c-xmjg"
+YARN_IGNORE+=(GHSA-grv7-fg5c-xmjg)
 # Denial of service in http-proxy-middleware
-YARN_IGNORE="$YARN_IGNORE GHSA-c7qv-q95q-8v27"
+YARN_IGNORE+=(GHSA-c7qv-q95q-8v27)
 # Improper Verification of Cryptographic Signature in node-forge
-YARN_IGNORE="$YARN_IGNORE GHSA-x4jg-mjrx-434g GHSA-cfm4-qjh2-4765"
+YARN_IGNORE+=(GHSA-x4jg-mjrx-434g GHSA-cfm4-qjh2-4765)
 # node-forge has ASN.1 Unbounded Recursion
-YARN_IGNORE="$YARN_IGNORE GHSA-554w-wpv2-vw27"
+YARN_IGNORE+=(GHSA-554w-wpv2-vw27)
 # node-forge has an Interpretation Conflict vulnerability via its ASN.1 Validator Desynchronization
-YARN_IGNORE="$YARN_IGNORE GHSA-5gfm-wpxj-wjgq"
-# Inefficient Regular Expression Complexity in nth-check"
-YARN_IGNORE="$YARN_IGNORE GHSA-rp65-9cf3-cjxr"
+YARN_IGNORE+=(GHSA-5gfm-wpxj-wjgq)
+# Inefficient Regular Expression Complexity in nth-check
+YARN_IGNORE+=(GHSA-rp65-9cf3-cjxr)
 # ip SSRF improper categorization in isPublic
-YARN_IGNORE="$YARN_IGNORE GHSA-2p57-rm9w-gvfp"
+YARN_IGNORE+=(GHSA-2p57-rm9w-gvfp)
 # node-tar is Vulnerable to Arbitrary File Overwrite and Symlink Poisoning via Insufficient Path Sanitization
-YARN_IGNORE="$YARN_IGNORE GHSA-8qq5-rm4j-mr97"
+YARN_IGNORE+=(GHSA-8qq5-rm4j-mr97)
 # Race Condition in node-tar Path Reservations via Unicode Ligature Collisions on macOS APFS
-YARN_IGNORE="$YARN_IGNORE GHSA-r6q2-hw4h-h46w"
+YARN_IGNORE+=(GHSA-r6q2-hw4h-h46w)
 # node-tar Vulnerable to Arbitrary File Creation/Overwrite via Hardlink Path Traversal
-YARN_IGNORE="$YARN_IGNORE GHSA-34x7-hfp2-rc4v"
+YARN_IGNORE+=(GHSA-34x7-hfp2-rc4v)
+# Arbitrary File Read/Write via Hardlink Target Escape Through Symlink Chain in node-tar Extraction
+YARN_IGNORE+=(GHSA-83g3-92jg-28cx)
+# minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern
+YARN_IGNORE+=(GHSA-3ppc-4f35-3m26)
 
-YARN_IGNORE_JSON="`echo $YARN_IGNORE | sed -e 's/^/"/' -e 's/$/"/' -e 's/ /", "/g'`"
+YARN_IGNORE_JSON="`echo ${YARN_IGNORE[@]} | sed -e 's/^/"/' -e 's/$/"/' -e 's/ /", "/g'`"
 echo "yarn audit --no-progress --level high --json"
 yarn audit --no-progress --level high --json > yarn_audit.json || true
 echo
@@ -64,7 +69,7 @@ cat yarn_audit.json | jq -c 'select ( .type == "auditSummary" )' | jq -M
 
 echo
 echo "Filtering for new high or critical severity warnings:"
-for IGNORE in $YARN_IGNORE; do
+for IGNORE in ${YARN_IGNORE[@]}; do
     cat yarn_audit.json | \
         jq -cMe 'select ( .type == "auditAdvisory" and (.data.advisory.github_advisory_id == "'"$IGNORE"'") )' > /dev/null || \
         echo "Warning: yarn audit no longer flags github_advisory_id $IGNORE"
@@ -75,6 +80,8 @@ if cat yarn_audit.json | jq -c 'select ( .type == "auditAdvisory" and (.data.adv
    echo Warning: New yarn audit vulnerabilities found in yarn.lock, listed above.
    echo Run script/yarn_audit.sh upgrade, or update YARN_IGNORE in
    echo script/yarn_audit.sh with accepted github_advisory_id values.
+   echo e.g. by running:
+   echo "$0 | grep -e title -e github_advisory_id | sed -E -e 's/^ *\"title\": \"(.*)\",\$/# \\1/' -e 's/^ *\"github_advisory_id\": \"(.*)\",/YARN_IGNORE+=(\\1)/'"
    exit 1
 else
    rm -f yarn_audit.json
