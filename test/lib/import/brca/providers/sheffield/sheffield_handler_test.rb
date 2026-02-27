@@ -78,6 +78,22 @@ class SheffieldHandlerTest < ActiveSupport::TestCase
     assert_nil  genotypes[1].attribute_map['codingdnasequencechange']
   end
 
+  test 'normal_full_screen_new_variable' do
+    normal_fs_record = build_raw_record('pseudo_id1' => 'bob')
+    normal_fs_record.raw_fields['genetictestscope'] = 'Breast & Ovarian cancer panel'
+    normal_fs_record.raw_fields['karyotypingmethod'] = 'BRCA1 and BRCA2'
+    normal_fs_record.raw_fields['genotype'] = 'A genetic cause for this individuals clinical presentation has not been identified'
+    @handler.add_test_scope_from_geno_karyo(@genotype, normal_fs_record)
+    genotypes = @handler.process_variants_from_record(@genotype, normal_fs_record)
+    assert_equal 2, genotypes.size
+    assert_equal 1, genotypes[0].attribute_map['teststatus']
+    assert_equal 1, genotypes[1].attribute_map['teststatus']
+    assert_equal 7, genotypes[0].attribute_map['gene']
+    assert_equal 8, genotypes[1].attribute_map['gene']
+    assert_nil  genotypes[0].attribute_map['proteinimpact']
+    assert_nil  genotypes[1].attribute_map['codingdnasequencechange']
+  end
+
   test 'failed_full_screen' do
     fail_fs_record = build_raw_record('pseudo_id1' => 'bob')
     fail_fs_record.raw_fields['genetictestscope'] = 'Breast & Ovarian cancer panel'

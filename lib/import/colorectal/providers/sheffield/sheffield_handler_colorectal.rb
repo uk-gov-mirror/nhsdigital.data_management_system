@@ -219,16 +219,18 @@ module Import
 
           def process_fullscreen_records(genocolorectal, record, genocolorectals)
             genotype_str = record.raw_fields['genotype']
-            if normal?(genotype_str)
-              process_normal_full_screen(genocolorectal, genocolorectals)
-            elsif positive_cdna?(genotype_str) || positive_exonvariant?(genotype_str)
+            if positive_cdna?(genotype_str) || positive_exonvariant?(genotype_str)
               process_variant_fs_records(genocolorectal, record, genocolorectals)
             elsif only_protein_impact?(genotype_str)
               process_only_protein_rec(genocolorectal, record, genocolorectals)
               positive_gene = get_gene(record)
               negative_genes = @genes_set - positive_gene
               add_other_genes_with_status(negative_genes, genocolorectal, genocolorectals, 1)
+            elsif normal?(genotype_str)
+              process_normal_full_screen(genocolorectal, genocolorectals)
             elsif genotype_str.scan(/see\sbelow|comments/ix).size.positive?
+              add_other_genes_with_status(@genes_set, genocolorectal, genocolorectals, 4)
+            else # else give a test status of 4 (unknown)
               add_other_genes_with_status(@genes_set, genocolorectal, genocolorectals, 4)
             end
           end

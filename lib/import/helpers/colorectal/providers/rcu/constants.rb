@@ -203,7 +203,7 @@ module Import
 
             # rubocop:disable Lint/MixedRegexpCaptureTypes
             NORMAL_VAR_REGEX = %r{(?<not>no|not)[a-z /]+
-                                  (?<det>detected|reported|deteected|deteceted|present)+}ix.freeze
+                                  (?<det>detected|reported|deteected|deteceted|present|identified)+}ix.freeze
 
             CDNA_REGEX = /c\.\[?(?<cdna>
                                 ([0-9]+[+>_-][0-9][+>_-][0-9]+[+>_-][0-9][ACGTdelinsup]+)|
