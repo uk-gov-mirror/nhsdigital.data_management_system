@@ -391,12 +391,12 @@ module Import
             genotype_str = record.raw_fields['genotype']
             if mlpa_fail?(record)
               process_mlpa_fail_full_screen(genotype, record, genotypes)
+            elsif positive_cdna?(genotype_str) || positive_exonvariant?(genotype_str)
+              process_variant_fs_records(genotype, record, genotypes)
             elsif normal?(record)
               process_normal_full_screen(genotype, record, genotypes)
             elsif failed_test?(record)
               process_failed_full_screen(genotype, record, genotypes)
-            elsif positive_cdna?(genotype_str) || positive_exonvariant?(genotype_str)
-              process_variant_fs_records(genotype, record, genotypes)
             else
               # else give a test status of 4 (unknown)
               add_other_genes_with_status(@genes_set, genotype, genotypes, 4)

@@ -246,7 +246,7 @@ module Import
                                   ([a-z\s]+(?<mutationtype>del(etion)?|duplicati?on|dup(licated)?))?/ix
 
             NORMAL_VAR_REGEX = %r{(?<not>no|not)[a-z /]+
-                                  (?<det>detect|report|detet|mutation)+}ix
+                                  (?<det>detect|report|detet|mutation|identified)+}ix
             # rubocop:enable Lint/MixedRegexpCaptureTypes
           end
         end

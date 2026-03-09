@@ -293,6 +293,24 @@ class SheffieldHandlerTest < ActiveSupport::TestCase
     assert_equal 'Targeted BRCA mutation test', genotypes[0].attribute_map['genetictestscope']
   end
 
+  test 'normal_full_screen_not_identified_case' do
+    normal_fs_not_identfied_record = build_raw_record('pseudo_id1' => 'bob')
+    normal_fs_not_identfied_record.raw_fields['genetictestscope'] = 'R208 :: BRCA1 and BRCA2 testing at high familial risk'
+    normal_fs_not_identfied_record.raw_fields['karyotypingmethod'] = 'R208.1 :: NGS in Leeds'
+    normal_fs_not_identfied_record.raw_fields['genotype'] = 'A hereditary (germline) genetic cause for this individual’s cancer has not been identified;'
+    @handler.add_test_scope_from_geno_karyo(@genotype, normal_fs_not_identfied_record)
+    genotypes = @handler.process_variants_from_record(@genotype, normal_fs_not_identfied_record)
+    assert_equal 3, genotypes.size
+    assert_equal 1, genotypes[0].attribute_map['teststatus']
+    assert_equal 1, genotypes[1].attribute_map['teststatus']
+    assert_equal 1, genotypes[2].attribute_map['teststatus']
+    assert_equal 7, genotypes[0].attribute_map['gene']
+    assert_equal 8, genotypes[1].attribute_map['gene']
+    assert_equal 3186, genotypes[2].attribute_map['gene']
+    assert_nil  genotypes[0].attribute_map['proteinimpact']
+    assert_nil  genotypes[1].attribute_map['codingdnasequencechange']
+  end
+
   private
 
   def clinical_json
