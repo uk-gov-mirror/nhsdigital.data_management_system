@@ -18,7 +18,8 @@ module Import
                                     'indirect testing' => :full_screen,
                                     'pold1/ pole analysis' => :full_screen,
                                     'prenatal diagnosis' => :targeted_mutation,
-                                    'presymptomatic' => :targeted_mutation }.freeze
+                                    'presymptomatic' => :targeted_mutation,
+                                    'mainstreaming' => :full_screen }.freeze
 
             COLORECTAL_GENES_MAP = { 'PJS' => %w[STK11],
                                      'PHTS' => %w[PTEN],
@@ -26,11 +27,13 @@ module Import
                                      'FAP' => %w[APC],
                                      'PPAP' => %w[POLE POLD1],
                                      'COCA' => %w[MLH1 MSH2],
-                                     'POLY' => %w[APC MUTYH],
-                                     'NGS_COLON' => %w[MLH1 MSH2 MSH6 APC MUTYH],
+                                     'POLY' => %w[APC MUTYH NTHL1],
+                                     'NGS_COLON' => %w[MLH1 MSH2 MSH6 APC MUTYH NTHL1],
                                      'COLON' => %w[MLH1 MSH2 MSH6 PMS2 APC MUTYH PTEN
-                                                   SMAD4 BMPR1A STK11],
-                                     'HNPCC' => %w[MLH1 MSH2 MSH6 PMS2 EPCAM] }.freeze
+                                                   SMAD4 BMPR1A STK11 NTHL1],
+                                     'HNPCC' => %w[MLH1 MSH2 MSH6 PMS2 EPCAM], 
+                                     'PC' => %w[BRCA1 BRCA2 ATM CHEK2 PALB2 MLH1 MLH2 MSH6], #contents of the R430 panel
+                                     'BAP1' => %w[BAP1]}.freeze
 
             COLORECTAL_GENES_REGEX = /(?<colorectal>APC|
                                                   BMPR1A|
@@ -45,7 +48,16 @@ module Import
                                                   PTEN|
                                                   SMAD4|
                                                   STK11|
-                                                  TACSTD1)/xi.freeze
+                                                  TACSTD1|
+                                                  BAP1|
+                                                  NTHL1|
+                                                  GREM1|
+                                                  RNF43|
+                                                  BRCA1|
+                                                  BRCA2|
+                                                  ATM|
+                                                  CHEK2|
+                                                  PALB2)/xi.freeze
 
             CDNA_REGEX = /c\.(?<cdna>([0-9]+[^[:alnum:]][0-9][^[:alnum:]][0-9]+
                           [^[:alnum:]][0-9][a-z]+)|

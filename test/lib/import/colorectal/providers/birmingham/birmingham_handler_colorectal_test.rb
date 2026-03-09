@@ -16,6 +16,9 @@ class BirminghamHandlerColorectalTest < ActiveSupport::TestCase
     @record.raw_fields['moleculartestingtype'] = 'RNA studies'
     @handler.process_genetictestscope(@genotype, @record)
     assert_equal 'Unable to assign Colorectal Lynch or MMR genetictestscope', @genotype.attribute_map['genetictestscope']
+    @record.raw_fields['moleculartestingtype'] = 'Mainstreaming'
+    @handler.process_genetictestscope(@genotype, @record)
+    assert_equal 'Full screen Colorectal Lynch or MMR', @genotype.attribute_map['genetictestscope']
   end
 
   test 'process_multiple_tests_from_fullscreen' do
@@ -174,6 +177,121 @@ class BirminghamHandlerColorectalTest < ActiveSupport::TestCase
     assert_equal 3, genocolorectals3[0].attribute_map['variantpathclass']
     assert_equal 'c.69_74delp', genocolorectals[0].attribute_map['codingdnasequencechange']
     assert_equal 62, genocolorectals[0].attribute_map['gene']
+  end
+
+  test 'process_variants_from_report_new_pc_indication_two_genes' do
+    # where 2 genes are indicated in the report field
+    pathogenic_record = build_raw_record('pseudo_id1' => 'bob')
+    pathogenic_record.raw_fields['indication'] = 'PC'
+    pathogenic_record.raw_fields['report'] = 'Next Generation Sequencing of coding regions in BRCA1 (NM_007294.4) and BRCA2 (NM_000059.3) (Illumina TruSight Hereditary Cancer Panel)'
+    pathogenic_record.raw_fields['overall2'] = 'Pathogenic'
+    pathogenic_record.raw_fields['teststatus'] = 'Heterozygous pathogenic variant c.1234_5678del p.(Asn1234Lysfs*3) identified in the BRCA2 gene in germline blood DNA'
+    processor = variant_processor_for(pathogenic_record)
+    genocolorectals = processor.process_variants_from_report
+    assert_equal 1, genocolorectals[0].attribute_map['teststatus']
+    assert_equal 7, genocolorectals[0].attribute_map['gene']
+    assert_equal 2, genocolorectals[1].attribute_map['teststatus']
+    assert_equal 'p.Asn1234LysfsTer3', genocolorectals[1].attribute_map['proteinimpact']
+    assert_equal 'c.1234_5678delp', genocolorectals[1].attribute_map['codingdnasequencechange']
+    assert_equal 8, genocolorectals[1].attribute_map['gene']
+
+    normal_record = build_raw_record('pseudo_id1' => 'bob')
+    normal_record.raw_fields['indication'] = 'PC'
+    normal_record.raw_fields['report'] = 'Next Generation Sequencing of coding regions in BRCA1 (NM_007294.4) and BRCA2 (NM_000059.3) (Illumina TruSight Hereditary Cancer Panel)'
+    normal_record.raw_fields['overall2'] = 'Normal'
+    normal_record.raw_fields['teststatus'] = 'No evidence of a pathogenic variant in BRCA1 or BRCA2'
+    processor = variant_processor_for(normal_record)
+    genocolorectals2 = processor.process_variants_from_report
+    assert_equal 1, genocolorectals2[0].attribute_map['teststatus']
+    assert_equal 7, genocolorectals2[0].attribute_map['gene']
+    assert_equal 1, genocolorectals2[1].attribute_map['teststatus']
+    assert_equal 8, genocolorectals2[1].attribute_map['gene']
+  end 
+
+  test 'process_variants_from_report_new_pc_indication_8_standard_genes' do
+    # where 8 genes are indicated in the report field
+    normal_record = build_raw_record('pseudo_id1' => 'bob')
+    normal_record.raw_fields['indication'] = 'PC'
+    normal_record.raw_fields['report'] = 'Next Generation Sequencing of coding regions in ATM (NM_000051.3), BRCA1 (NM_007294.4),
+                                          BRCA2 (NM_000059.3), CHEK2 exons 2-10 plus codon 367 (NM_007194.4), MLH1 (NM_000249.4),
+                                          MSH2 (NM_000251.3), MSH6 (NM_000179.3) and PALB2 (NM_024675.4) (Illumina TruSight Hereditary Cancer Panel)'
+    normal_record.raw_fields['overall2'] = 'Normal'
+    normal_record.raw_fields['teststatus'] = 'No evidence of a pathogenic variant in BRCA1, BRCA2, MLH1, MSH2, MSH6 or PALB2.'
+    processor = variant_processor_for(normal_record)
+    genocolorectals = processor.process_variants_from_report
+    assert_equal 8, genocolorectals.size
+    assert(genocolorectals.all? { |g| g.attribute_map['teststatus'] == 1 })
+
+    normal_record = build_raw_record('pseudo_id1' => 'bob')
+    normal_record.raw_fields['indication'] = 'PC'
+    normal_record.raw_fields['report'] = 'Next Generation Sequencing of coding regions in ATM (NM_000051.3), BRCA1 (NM_007294.4),
+                                          BRCA2 (NM_000059.3), CHEK2 exons 2-10 plus codon 367 (NM_007194.4), MLH1 (NM_000249.4),
+                                          MSH2 (NM_000251.3), MSH6 (NM_000179.3) and PALB2 (NM_024675.4) (Illumina TruSight Hereditary Cancer Panel)'
+    normal_record.raw_fields['overall2'] = 'Normal'
+    normal_record.raw_fields['teststatus'] = 'HHeterozygous pathogenic variant c.1447C>T p.(Gln483*) identified in the MLH1 gene.'
+    processor = variant_processor_for(normal_record)
+    genocolorectals2 = processor.process_variants_from_report
+    assert_equal 8, genocolorectals2.size
+    assert_equal 1, genocolorectals2[4].attribute_map['teststatus']
+    assert_nil genocolorectals2[4].attribute_map['codingdnasequencechange']
+    assert_nil genocolorectals2[4].attribute_map['proteinimpact']
+    assert_equal 2744, genocolorectals2[4].attribute_map['gene']
+  end 
+
+  test 'process_variants_from_report_new_pc_indication_nine_genes' do
+    # where 9 genes are indicated in the report field
+    uv_record = build_raw_record('pseudo_id1' => 'bob')
+    uv_record.raw_fields['indication'] = 'PC'
+    uv_record.raw_fields['overall2'] = 'UV'
+    uv_record.raw_fields['report'] = 'Next Generation Sequencing of coding regions in ATM (NM_000051.3), BRCA1 (NM_007294.4),
+                                          BRCA2 (NM_000059.3), CHEK2 exons 2-10 plus codon 367 (NM_007194.4), MLH1 (NM_000249.4),
+                                          MSH2 (NM_000251.3), MSH6 (NM_000179.3) and PALB2 (NM_024675.4). MLPA of EPCAM.'
+    uv_record.raw_fields['teststatus'] = 'Heterozygous inframe deletion variant of uncertain significance c.12_34del p.(Asp12_Leu17del) detected in the MLH1 gene'
+    processor = variant_processor_for(uv_record)
+    genocolorectals =  processor.process_variants_from_report
+    assert_equal 9, genocolorectals.size
+    assert_equal 2744, genocolorectals[8].attribute_map['gene']
+    assert_equal 2, genocolorectals[8].attribute_map['teststatus']
+    assert_equal 3, genocolorectals[8].attribute_map['variantpathclass']
+    assert_equal 'c.12_34delp', genocolorectals[8].attribute_map['codingdnasequencechange']
+
+    normal_record = build_raw_record('pseudo_id1' => 'bob')
+    normal_record.raw_fields['indication'] = 'PC'
+    normal_record.raw_fields['overall2'] = 'Normal'
+    normal_record.raw_fields['report'] = 'Next Generation Sequencing of coding regions in ATM (NM_000051.3), BRCA1 (NM_007294.4),
+                                          BRCA2 (NM_000059.3), CHEK2 exons 2-10 plus codon 367 (NM_007194.4), MLH1 (NM_000249.4),
+                                          MSH2 (NM_000251.3), MSH6 (NM_000179.3) and PALB2 (NM_024675.4). MLPA of EPCAM.'
+    normal_record.raw_fields['teststatus'] = 'No evidence of a pathogenic variant in BRCA1, BRCA2, MLH1, MSH2, MSH6 or PALB2.'
+    processor = variant_processor_for(normal_record)
+    genocolorectals =  processor.process_variants_from_report
+    assert_equal 9, genocolorectals.size
+    assert(genocolorectals.all? { |g| g.attribute_map['teststatus'] == 1 })
+  end
+
+
+  test 'process_variants_from_report_new_bap1_indication' do
+    pathogenic_record = build_raw_record('pseudo_id1' => 'bob')
+    pathogenic_record.raw_fields['indication'] = 'BAP1'
+    pathogenic_record.raw_fields['report'] = 'Sanger sequencing analysis was used to detect the familial variant in the BAP1 gene. '
+    pathogenic_record.raw_fields['overall2'] = 'Pathogenic'
+    pathogenic_record.raw_fields['teststatus'] = 'Molecular analysis shows the presence of the familial pathogenic variant c.123-1G>A in the BAP1 gene'
+    processor = variant_processor_for(pathogenic_record)
+    genocolorectal = processor.process_variants_from_report
+    assert_equal 1, genocolorectal.size
+    assert_equal 2, genocolorectal[0].attribute_map['teststatus']
+    assert_equal 'c.123-1G>A', genocolorectal[0].attribute_map['codingdnasequencechange']
+    assert_equal 517, genocolorectal[0].attribute_map['gene']
+
+    normal_record = build_raw_record('pseudo_id1' => 'bob')
+    normal_record.raw_fields['indication'] = 'BAP1'
+    normal_record.raw_fields['report'] = 'Next Generation Sequencing of coding regions in BAP1 (NM_004656.4) (Illumina TruSight Hereditary Cancer Panel'
+    normal_record.raw_fields['overall2'] = 'Normal'
+    normal_record.raw_fields['teststatus'] = 'Molecular analysis shows no evidence of the familial pathogenic variant in the BAP1 gene'
+    processor = variant_processor_for(normal_record)
+    genocolorectal2 = processor.process_variants_from_report
+    assert_equal 1, genocolorectal2.size
+    assert_equal 1, genocolorectal2[0].attribute_map['teststatus']
+    assert_equal 517, genocolorectal2[0].attribute_map['gene']
   end
 
   private
