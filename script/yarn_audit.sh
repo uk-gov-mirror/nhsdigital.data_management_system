@@ -57,8 +57,12 @@ YARN_IGNORE+=(GHSA-r6q2-hw4h-h46w)
 YARN_IGNORE+=(GHSA-34x7-hfp2-rc4v)
 # Arbitrary File Read/Write via Hardlink Target Escape Through Symlink Chain in node-tar Extraction
 YARN_IGNORE+=(GHSA-83g3-92jg-28cx)
-# minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern
-YARN_IGNORE+=(GHSA-3ppc-4f35-3m26)
+# tar has Hardlink Path Traversal via Drive-Relative Linkpath
+YARN_IGNORE+=(GHSA-qffp-2rhf-9h96)
+# node-tar Symlink Path Traversal via Drive-Relative Linkpath
+YARN_IGNORE+=(GHSA-9ppj-qmqm-q256)
+# Serialize JavaScript is Vulnerable to RCE via RegExp.flags and Date.prototype.toISOString()
+YARN_IGNORE+=(GHSA-5c6j-r48x-rmvq)
 
 YARN_IGNORE_JSON="`echo ${YARN_IGNORE[@]} | sed -e 's/^/"/' -e 's/$/"/' -e 's/ /", "/g'`"
 echo "yarn audit --no-progress --level high --json"
