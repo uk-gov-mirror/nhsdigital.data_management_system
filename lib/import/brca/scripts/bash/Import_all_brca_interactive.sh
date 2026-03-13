@@ -115,6 +115,7 @@ IFS=$'\n'
 for x in $(find $DIRPATH/$FILEPATH -type f -path "*/$PROV/*" \
 \( -iname "*BRCA*.pseudo" -o -iname "*HBOC*.pseudo" -o -iname "*BrOvCa*.pseudo" -o \
   -name "*1dbb561a296d1efcf685bd67a3b*pseudo" \)  \
+-not -path "*/2025-08-14/*" \
 ! -iname "*NON_CRC_HBOC_*" \
 ! -iname "*lynch*" \
 ! -iname "*nonBRCA*" \
