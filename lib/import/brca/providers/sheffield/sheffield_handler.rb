@@ -71,6 +71,7 @@ module Import
             @genes_set = []
             @genes_set.append(karyo_column.scan(BRCA_REGEX))
             @genes_set.append(genotype_column.scan(BRCA_REGEX))
+            @genes_set.flatten.uniq
           end
 
           def process_scope_ovarian_panel(karyo, genotype, _record)
@@ -126,7 +127,11 @@ module Import
               @logger.debug "ADDED FULL_SCREEN TEST for: #{karyo}"
               genotype.add_test_scope(:full_screen)
               @genes_set = R207_GENE_MAPPING_FS[karyo]
-            elsif R207_GENE_MAPPING_TAR.include? karyo
+            elsif /^R207.1/ix.match(karyo)
+              @logger.debug "ADDED FULL_SCREEN TEST for: #{karyo}"
+              genotype.add_test_scope(:full_screen)
+              @genes_set = R207_1_FS_GENES
+            elsif /^R240|^R242/ix.match(karyo)
               @logger.debug "ADDED TARGETED TEST for: #{karyo}"
               genotype.add_test_scope(:targeted_mutation)
               get_genes_set_targeted(record)
@@ -162,20 +167,24 @@ module Import
                 date = DateTime.parse(record.raw_fields['authoriseddate'])
                 @genes_set.concat(%w[RAD51C RAD51D]) if date >= DateTime.parse('01/02/2023')
               end
-            elsif R208_GENE_MAPPING_TAR_NEW.include? karyo
+            elsif /^R240|^R242/ix.match(karyo) || /^R370.1\s::\sConfirmation\sof\sresearch\sresult/ix.match(karyo)
               @logger.debug "ADDED TARGETED TEST for: #{karyo}"
               genotype.add_test_scope(:targeted_mutation)
               get_genes_set_targeted(record)
             else
               genotype.add_test_scope(:no_genetictestscope)
             end
-            @genes_set = @genes_set.uniq
+            @genes_set = @genes_set.flatten.uniq
           end
 
-          def process_scope_r430(karyo, genotype, _record)
-            if R430_GENE_MAPPING_FS.keys.include? karyo
-              @genes_set = R430_GENE_MAPPING_FS[karyo]
+          def process_scope_r430(karyo, genotype, record)
+            if /^R430/.match(karyo) || /^R420.1\s::\sNGS\sin\sLeeds\s-\sSend\sBlood/ix.match(karyo)
+              @genes_set = R430_FS_GENES
               genotype.add_test_scope(:full_screen)
+            elsif /^R240|^R242/ix.match(karyo)
+              @logger.debug "ADDED TARGETED TEST for: #{karyo}"
+              genotype.add_test_scope(:targeted_mutation)
+              get_genes_set_targeted(record)
             else
               genotype.add_test_scope(:no_genetictestscope)
             end
@@ -217,40 +226,46 @@ module Import
           end
 
           def add_test_type(genotype, record)
-            Maybe(record.raw_fields['moleculartestingtype']).each do |type|
-              genotype.add_molecular_testing_type_strict(TEST_TYPE_MAPPING[type.strip])
+            karyo = record.raw_fields['karyotypingmethod'].strip
+            moleculartestingtype = record.raw_fields['moleculartestingtype'].strip
+
+            test_type = determine_test_type(moleculartestingtype, karyo)
+            genotype.add_molecular_testing_type_strict(test_type) if test_type
+          end
+
+          def determine_test_type(moleculartestingtype, karyo)
+            # First priority: moleculartestingtype
+            return TEST_TYPE_MAPPING[moleculartestingtype] if TEST_TYPE_MAPPING.key?(moleculartestingtype)
+            return :predictive if moleculartestingtype.match?(/unaffected/i)
+
+            # Second priority: karyo R-number patterns
+            test_type_from_karyo(karyo)
+          end
+
+          def test_type_from_karyo(karyo)
+            case karyo
+            when /^R(240|205|206|207|208|209|210|211|430|444|216|414|370)/
+              :diagnostic
+            when /^R242/
+              :predictive
+            when /^R(244|246)/
+              :carrier
+            when /^R448/
+              :prenatal
             end
           end
 
           def process_variants_from_record(genotype, record)
             genotypes = []
-            if full_screen?(genotype)
+            if genotype.full_screen?
               process_fullscreen_records(genotype, record, genotypes)
-            elsif targeted?(genotype) || no_scope?(genotype)
+            elsif genotype.targeted? || genotype.no_scope?
               process_targeted_no_scope_records(genotype, record, genotypes)
             end
             genotypes
           end
 
-          def full_screen?(genotype)
-            return if genotype.attribute_map['genetictestscope'].nil?
-
-            genotype.attribute_map['genetictestscope'].scan(/Full screen/i).size.positive?
-          end
-
-          def targeted?(genotype)
-            return if genotype.attribute_map['genetictestscope'].nil?
-
-            genotype.attribute_map['genetictestscope'].scan(/Targeted/i).size.positive?
-          end
-
-          def no_scope?(genotype)
-            return if genotype.attribute_map['genetictestscope'].nil?
-
-            genotype.attribute_map['genetictestscope'].scan(/Unable to assign/i).size.positive?
-          end
-
-          # rubocop:disable Metrics/MethodLength disabled as rubcop reduces redability if the method
+          # rubocop:disable Metrics/MethodLength -- disabled as rubocop reduces readability if the method
           def process_targeted_no_scope_records(genotype, record, genotypes)
             genotype_str = record.raw_fields['genotype']
             positive_genes = genotype_str.scan(BRCA_REGEX).flatten.uniq
@@ -350,8 +365,9 @@ module Import
 
           def process_multi_genes(genotype, record, genotypes)
             positive_genes = record.raw_fields['genotype'].scan(BRCA_REGEX).flatten
-            positive_genes = positive_genes.join('|')
-            raw_genotypes = record.raw_fields['genotype'].split(/(?=#{positive_genes})/)
+            positive_genes = positive_genes.uniq.join('|')
+            cleaned = record.raw_fields['genotype'].gsub(RISK_PREFIX_REGEX, '').strip
+            raw_genotypes = cleaned.split(/(?=#{positive_genes})/)
 
             process_raw_genotypes(raw_genotypes, genotype, genotypes)
           end

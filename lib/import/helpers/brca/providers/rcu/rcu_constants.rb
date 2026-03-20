@@ -23,8 +23,10 @@ module Import
               'R206 :: Inherited breast cancer ' \
               'and ovarian cancer at high familial risk levels' => :process_scope_r206,
               'R207 :: Inherited ovarian cancer (without breast cancer)' => :process_scope_r207,
+              'R207' => :process_scope_r207,
               'R208 :: BRCA1 and BRCA2 testing at high familial risk' => :process_scope_r208,
               'R208 :: Inherited breast cancer and ovarian cancer' => :process_scope_r208_new,
+              'R208' => :process_scope_r208_new,
               'R240 - Familial Diagnostic testing - Hered Cancers' => :process_scope_r240,
               'R242 - Predictive testing - Hered Cancers' => :process_scope_r242,
               'R430 :: Inherited Prostate Cancer' => :process_scope_r430,
@@ -111,25 +113,14 @@ module Import
             }.freeze
 
             R207_GENE_MAPPING_FS = {
-              'R207.1 :: Unknown mutation(s) by Small panel' => %w[BRCA1 BRCA2 BRIP1 EPCAM MLH1
-                                                                   MSH2 MSH6 PALB2 RAD51C RAD51D
-                                                                   PMS2],
               'R207.2 :: Unknown mutation(s) by MLPA or equivalent' => %w[BRCA1 BRCA2 MLH1 MSH2],
               'R387.1 :: NGS analysis only' => %w[BRCA1 BRCA2 BRIP1 EPCAM MLH1 MSH2
                                                   MSH6 PALB2 RAD51C RAD51D PMS2],
-              'R207.1 :: NGS in Leeds' => %w[BRCA1 BRCA2 BRIP1 EPCAM MLH1 MSH2
-                                             MSH6 PALB2 RAD51C RAD51D PMS2],
-              'R207.1 :: NGS in Leeds - Send DNA to Leeds' => %w[BRCA1 BRCA2 BRIP1 EPCAM MLH1 MSH2
-                                                                 MSH6 PALB2 RAD51C RAD51D PMS2]
+              'R387.1 :: Reanalysis of existing NGS data' => %w[BRCA1 BRCA2 BRIP1 EPCAM MLH1 MSH2
+                                                                MSH6 PALB2 RAD51C RAD51D PMS2]
             }.freeze
 
-            R207_GENE_MAPPING_TAR = [
-              'R240.1 :: Diagnostic familial',
-              'R242.1 :: Predictive testing',
-              'R242.1 :: Predictive testing - Seq in Leeds - Send Blood',
-              'R242.1 :: Predictive testing - Seq in Leeds - Send DNA',
-              'R242.1 :: Predictive testing - MLPA in Leeds - Send Blood'
-            ].freeze
+            R207_1_FS_GENES = %w[BRCA1 BRCA2 BRIP1 EPCAM MLH1 MSH2 MSH6 PALB2 RAD51C RAD51D PMS2]
 
             R208_GENE_MAPPING_FS = {
               'R208.1 :: Unknown mutation(s) by Single gene sequencing' => %w[BRCA1 BRCA2 PALB2],
@@ -173,9 +164,7 @@ module Import
               'R242.1 :: Predictive testing - ATM gene'
             ].freeze
 
-            R430_GENE_MAPPING_FS = {
-              'R420.1 :: NGS in Leeds - Send Blood' => %w[ATM BRCA1 BRCA2 CHEK2 MLH1 MSH2 MSH6 PALB2]
-            }.freeze
+            R430_FS_GENES = %w[ATM BRCA1 BRCA2 CHEK2 MLH1 MSH2 MSH6 PALB2].freeze
 
             R444_GENE_MAPPING = {
               'R444.1 :: PARPi for Breast cancer - NGS in Leeds' => %w[ATM BRCA1 BRCA2 CHEK2 PALB2 RAD51C RAD51D],
@@ -210,7 +199,14 @@ module Import
 
             BRCA_REGEX = /(?<brca>BRCA1|BRCA2|PALB2|ATM|CHEK2|TP53|MLH1|CDH1|
                           MSH2|MSH6|PMS2|STK11|PTEN|BRIP1|NBN|RAD51C|RAD51D|EPCAM)/ix
+            GENE_PATTERN = Regexp.union(GENES_LIST)
 
+            RISK_PREFIX_REGEX = /
+              At\selevated\srisk\sof\s+
+              #{GENE_PATTERN}\s+
+              and\s+
+              #{GENE_PATTERN}-related\ cancers;
+            ?/ix
             # rubocop:disable Lint/MixedRegexpCaptureTypes
             CDNA_REGEX = /((c(\.)?-?\*?(?<cdna>
             (\[[0-9]+[+>_-][0-9][+>_-][0-9]+[+>_-][0-9][ACGTdelinsup]+\])|

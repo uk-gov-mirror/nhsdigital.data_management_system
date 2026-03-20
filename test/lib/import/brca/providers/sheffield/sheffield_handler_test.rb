@@ -29,9 +29,36 @@ class SheffieldHandlerTest < ActiveSupport::TestCase
     assert_equal 'Unable to assign BRCA genetictestscope', @genotype.attribute_map['genetictestscope']
   end
 
-  test 'add_test_type' do
+  test 'add_test_type from moleculartestingtype mapping' do
     @handler.add_test_type(@genotype, @record)
     assert_equal 2, @genotype.attribute_map['moleculartestingtype']
+    mtype_record = build_raw_record('pseudo_id1' => 'bob')
+    mtype_record.raw_fields['moleculartestingtype'] = 'Testing for unaffected family member'
+    @handler.add_test_type(@genotype, mtype_record)
+    assert_equal 2, @genotype.attribute_map['moleculartestingtype'] # :predictive
+  end
+
+  test 'add_test_type from karyo when moleculartestingtype cannot be determined' do
+    karyo_mtype_record = build_raw_record('pseudo_id1' => 'bob')
+    karyo_mtype_record.raw_fields['moleculartestingtype'] = ''
+    karyo_mtype_record.raw_fields['karyotypingmethod'] = 'R240.1 :: Some test'
+    @handler.add_test_type(@genotype, karyo_mtype_record)
+    assert_equal 1, @genotype.attribute_map['moleculartestingtype'] # :diagnostic
+    karyo_mtype_record.raw_fields['karyotypingmethod'] = 'R242.1 :: Predictive testing'
+    @handler.add_test_type(@genotype, karyo_mtype_record)
+    assert_equal 2, @genotype.attribute_map['moleculartestingtype'] # :predictive
+    karyo_mtype_record.raw_fields['karyotypingmethod'] = 'R448.1 :: Prenatal testing'
+    @handler.add_test_type(@genotype, karyo_mtype_record)
+    assert_equal 4, @genotype.attribute_map['moleculartestingtype'] # :prenatal
+  end
+
+  test 'add_test_type moleculartestingtype takes priority over karyo' do
+    priority_record = build_raw_record('pseudo_id1' => 'bob')
+    priority_record.raw_fields['moleculartestingtype'] = 'Diagnostic testing'
+    priority_record.raw_fields['karyotypingmethod'] = 'R242.1 :: Predictive testing'
+    @handler.add_test_type(@genotype, priority_record)
+    # Should be diagnostic from moleculartestingtype, not predictive from karyo
+    assert_equal 1, @genotype.attribute_map['moleculartestingtype']
   end
 
   test 'process_variants_from_record' do
@@ -309,6 +336,110 @@ class SheffieldHandlerTest < ActiveSupport::TestCase
     assert_equal 3186, genotypes[2].attribute_map['gene']
     assert_nil  genotypes[0].attribute_map['proteinimpact']
     assert_nil  genotypes[1].attribute_map['codingdnasequencechange']
+  end
+
+  test 'process_scope_r207 with R207.1 full screen' do
+    r207_1_record = build_raw_record('pseudo_id1' => 'bob')
+    r207_1_record.raw_fields['genetictestscope'] = 'R207 :: Inherited ovarian cancer (without breast cancer)'
+    r207_1_record.raw_fields['karyotypingmethod'] = 'R207.1 :: NGS in Leeds'
+    r207_1_record.raw_fields['genotype'] = 'BRCA1-c.5266dup-p.(Gln1756fs)-Heterozygous-UV5;MSH6-c.3649A>G-p.(Arg1217Gly)-Heterozygous-UV3'
+    @handler.add_test_scope_from_geno_karyo(@genotype, r207_1_record)
+    assert_equal 'Full screen BRCA1 and BRCA2', @genotype.attribute_map['genetictestscope']
+    genotypes = @handler.process_variants_from_record(@genotype, r207_1_record)
+    assert_equal 11, genotypes.size
+    variant_genotype_brca = genotypes.find { |g| g.attribute_map['gene'] == 7 } # BRCA1
+    assert_equal 2, variant_genotype_brca.attribute_map['teststatus']
+    assert_equal 'c.5266dup', variant_genotype_brca.attribute_map['codingdnasequencechange']
+    assert_equal 'p.Gln1756fs', variant_genotype_brca.attribute_map['proteinimpact']
+
+    variant_genotype_msh6 = genotypes.find { |g| g.attribute_map['gene'] == 2808 } # MSH6
+    assert_equal 2, variant_genotype_msh6.attribute_map['teststatus']
+    assert_equal 'c.3649A>G', variant_genotype_msh6.attribute_map['codingdnasequencechange']
+    assert_equal 'p.Arg1217Gly', variant_genotype_msh6.attribute_map['proteinimpact']
+    genotypes.each do |genotype|
+      next if [7, 2808].include?(genotype.attribute_map['gene'])
+
+      assert_equal 1, genotype.attribute_map['teststatus']
+    end
+  end
+
+  test 'process_scope_r207 with R240 targeted' do
+    r207_r240_record = build_raw_record('pseudo_id1' => 'bob')
+    r207_r240_record.raw_fields['genetictestscope'] = 'R207'
+    r207_r240_record.raw_fields['karyotypingmethod'] = 'R240 :: Diagnostic testing for known pathogenic variant(s) - Hereditary Cancers'
+    r207_r240_record.raw_fields['genotype'] = 'Genetic diagnosis of BRCA2-related cancer susceptibility; BRCA2(NM_000059.3);c.4218_4221del;p.(Lys1406Asnfs*3);Heterozygous;UV5'
+    @handler.add_test_scope_from_geno_karyo(@genotype, r207_r240_record)
+    assert_equal 'Targeted BRCA mutation test', @genotype.attribute_map['genetictestscope']
+    genotypes = @handler.process_variants_from_record(@genotype, r207_r240_record)
+    assert_equal 1, genotypes.size
+    assert_equal 2, genotypes[0].attribute_map['teststatus']
+    assert_equal 8, genotypes[0].attribute_map['gene']
+    assert_equal 'c.4218_4221del', genotypes[0].attribute_map['codingdnasequencechange']
+    assert_equal 'p.Lys1406AsnfsTer3', genotypes[0].attribute_map['proteinimpact']
+  end
+
+  test 'process_scope_r208_new with R242 targeted' do
+    r208_r242_record = build_raw_record('pseudo_id1' => 'bob')
+    r208_r242_record.raw_fields['genetictestscope'] = 'R208'
+    r208_r242_record.raw_fields['karyotypingmethod'] = 'R242 :: Predictive testing for known familial pathogenic variant(s) - Hereditary Cancers'
+    r208_r242_record.raw_fields['genotype'] = 'At elevated risk of BRCA1 and BRCA2-related cancers; BRCA1(NM_007294.3);deletion including exons 1-2Heterozygous;'
+    @handler.add_test_scope_from_geno_karyo(@genotype, r208_r242_record)
+    assert_equal 'Targeted BRCA mutation test', @genotype.attribute_map['genetictestscope']
+    genotypes = @handler.process_variants_from_record(@genotype, r208_r242_record)
+    assert_equal 1, genotypes.size
+    assert_equal 2, genotypes[0].attribute_map['teststatus']
+    assert_equal 7, genotypes[0].attribute_map['gene']
+  end
+
+  test 'process_scope_r430 with R430 full screen' do
+    r430_record = build_raw_record('pseudo_id1' => 'bob')
+    r430_record.raw_fields['genetictestscope'] = 'R430 :: Inherited Prostate Cancer'
+    r430_record.raw_fields['karyotypingmethod'] = 'R430.1 :: NGS in Leeds'
+    r430_record.raw_fields['genotype'] = 'Genetic diagnosis of CHEK2-related cancer susceptibility; CHEK2(NM_007194.4);c.1100del;p.(Glu1493fs);Heterozygous;UV5'
+    @handler.add_test_scope_from_geno_karyo(@genotype, r430_record)
+    assert_equal 'Full screen BRCA1 and BRCA2', @genotype.attribute_map['genetictestscope']
+    genotypes = @handler.process_variants_from_record(@genotype, r430_record)
+    assert_equal 8, genotypes.size
+    variant_genotype = genotypes.find { |g| g.attribute_map['gene'] == 865 } # CHEK2
+    assert_equal 2, variant_genotype.attribute_map['teststatus']
+    assert_equal 'c.1100del', variant_genotype.attribute_map['codingdnasequencechange']
+    assert_equal 'p.Glu1493fs', variant_genotype.attribute_map['proteinimpact']
+
+    genotypes.each do |genotype|
+      next if genotype.attribute_map['gene'] == 865
+
+      assert_equal 1, genotype.attribute_map['teststatus']
+    end
+  end
+
+  test 'process_scope_r207 with R387.1 targeted' do
+    r207_r387_1_record = build_raw_record('pseudo_id1' => 'bob')
+    r207_r387_1_record.raw_fields['genetictestscope'] = 'R207'
+    r207_r387_1_record.raw_fields['karyotypingmethod'] = 'R387.1 :: Reanalysis of existing NGS data'
+    r207_r387_1_record.raw_fields['genotype'] = 'No variant detected'
+    @handler.add_test_scope_from_geno_karyo(@genotype, r207_r387_1_record)
+    assert_equal 'Full screen BRCA1 and BRCA2', @genotype.attribute_map['genetictestscope']
+    genotypes = @handler.process_variants_from_record(@genotype, r207_r387_1_record)
+    assert_equal 11, genotypes.size
+    genotypes.each do |genotype|
+      assert_not_nil genotype.attribute_map['gene']
+      assert_equal 1, genotype.attribute_map['teststatus']
+    end
+  end
+
+  test 'process_scope_r208 with R370.1 targeted' do
+    r208_r370_1_record = build_raw_record('pseudo_id1' => 'bob')
+    r208_r370_1_record.raw_fields['genetictestscope'] = 'R208 :: Inherited breast cancer and ovarian cancer'
+    r208_r370_1_record.raw_fields['karyotypingmethod'] = 'R370.1 :: Confirmation of research result'
+    r208_r370_1_record.raw_fields['genotype'] = 'BRCA1-GRCh38(chr17):g.43118884_43155545dup; (NM_007294.3):c.1100del-Heterozygous-UV3'
+    @handler.add_test_scope_from_geno_karyo(@genotype, r208_r370_1_record)
+    assert_equal 'Targeted BRCA mutation test', @genotype.attribute_map['genetictestscope']
+    genotypes = @handler.process_variants_from_record(@genotype, r208_r370_1_record)
+    assert_equal 1, genotypes.size
+    assert_equal 2, genotypes[0].attribute_map['teststatus']
+    assert_equal 7, genotypes[0].attribute_map['gene']
+    assert_equal 'c.1100del', genotypes[0].attribute_map['codingdnasequencechange']
+    assert_nil genotypes[0].attribute_map['proteinimpact']
   end
 
   private
