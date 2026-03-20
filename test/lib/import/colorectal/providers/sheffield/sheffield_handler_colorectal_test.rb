@@ -23,12 +23,66 @@ class SheffieldHandlerColorectalTest < ActiveSupport::TestCase
     assert_equal 'Targeted Colorectal Lynch or MMR', @genotype.attribute_map['genetictestscope']
   end
 
+  test 'add_test_scope_from_fs_r211' do
+    r211_fs_record = build_raw_record('pseudo_id1' => 'bob')
+    r211_fs_record.raw_fields['genetictestscope'] = 'R211'
+    r211_fs_record.raw_fields['karyotypingmethod'] = 'R211.1 :: Small panel in Leeds - send DNA sample'
+    @handler.add_test_scope_from_geno_karyo(@genotype, r211_fs_record)
+    assert_equal 'Full screen Colorectal Lynch or MMR', @genotype.attribute_map['genetictestscope']
+  end
+
+  test 'add_test_scope_from_fs_r216' do
+    r216_fs_record = build_raw_record('pseudo_id1' => 'bob')
+    r216_fs_record.raw_fields['genetictestscope'] = 'R216 :: Li Fraumeni Syndrome - SDGS'
+    r216_fs_record.raw_fields['karyotypingmethod'] = 'R216.1 :: TP53 NGS in Leeds Analysis only'
+    @handler.add_test_scope_from_geno_karyo(@genotype, r216_fs_record)
+    assert_equal 'Full screen Colorectal Lynch or MMR', @genotype.attribute_map['genetictestscope']
+  end
+
   test 'add_no_scope_from_karyo_targeted' do
     no_scope_record = build_raw_record('pseudo_id1' => 'bob')
     no_scope_record.raw_fields['genetictestscope'] = 'XYZ'
     no_scope_record.raw_fields['karyotypingmethod'] = 'ABC'
     @handler.add_test_scope_from_geno_karyo(@genotype, no_scope_record)
     assert_equal 'Unable to assign Colorectal Lynch or MMR genetictestscope', @genotype.attribute_map['genetictestscope']
+  end
+
+  test 'add_moltestingtype_from_mapping' do
+    diagnostic_record = build_raw_record('pseudo_id1' => 'bob')
+    diagnostic_record.raw_fields['moleculartestingtype'] = 'Confirmation of Familial Mutation'
+    @handler.add_test_type(@genotype, diagnostic_record)
+    assert_equal 1, @genotype.attribute_map['moleculartestingtype']
+    predictive_record = build_raw_record('pseudo_id1' => 'bob')
+    predictive_record.raw_fields['moleculartestingtype'] = 'Family Studies'
+    @handler.add_test_type(@genotype, predictive_record)
+    assert_equal 2, @genotype.attribute_map['moleculartestingtype']
+  end
+
+  test 'add_moltestingtype_from_karyo' do
+    diagnostic_record = build_raw_record('pseudo_id1' => 'bob')
+    diagnostic_record.raw_fields['moleculartestingtype'] = 'cabbage'
+    diagnostic_record.raw_fields['karyotypingmethod'] = 'R210.2 :: Small panel in Leeds'
+    @handler.add_test_type(@genotype, diagnostic_record)
+    assert_equal 1, @genotype.attribute_map['moleculartestingtype']
+    predictive_record = build_raw_record('pseudo_id1' => 'bob')
+    predictive_record.raw_fields['moleculartestingtype'] = 'cabbage'
+    predictive_record.raw_fields['karyotypingmethod'] = 'R242 :: Predictive testing for known familial pathogenic variant(s) - Hereditary Cancers'
+    @handler.add_test_type(@genotype, predictive_record)
+    assert_equal 2, @genotype.attribute_map['moleculartestingtype']
+    carrier_record = build_raw_record('pseudo_id1' => 'bob')
+    carrier_record.raw_fields['moleculartestingtype'] = 'cabbage'
+    carrier_record.raw_fields['karyotypingmethod'] = 'R246.1 :: Small panel Carrier testing of partners at population risk'
+    @handler.add_test_type(@genotype, carrier_record)
+    assert_equal 3, @genotype.attribute_map['moleculartestingtype']
+  end
+
+  test 'add_moletestingtype_from_mapping_as_priority' do
+    # priority should be given to moleculartestingtype field over karyotypingmethod field
+    diagnostic_record = build_raw_record('pseudo_id1' => 'bob')
+    diagnostic_record.raw_fields['moleculartestingtype'] = 'Diagnostic testing for known mutation'
+    diagnostic_record.raw_fields['karyotypingmethod'] = 'R242 :: Predictive testing for known familial pathogenic variant(s) - Hereditary Cancers'
+    @handler.add_test_type(@genotype, diagnostic_record)
+    assert_equal 1, @genotype.attribute_map['moleculartestingtype']
   end
 
   test 'add_colorectal_from_raw_test_full_screen' do
@@ -163,7 +217,7 @@ class SheffieldHandlerColorectalTest < ActiveSupport::TestCase
     assert_nil genocolorectals[0].attribute_map['gene']
   end
 
-  test 'process_targeted_no_scope_failure' do 
+  test 'process_targeted_no_scope_failure' do
     exon_record = build_raw_record('pseudo_id1' => 'bob')
     exon_record.raw_fields['genetictestscope'] = 'efgh'
     exon_record.raw_fields['karyotypingmethod'] = 'abcd'
@@ -177,7 +231,7 @@ class SheffieldHandlerColorectalTest < ActiveSupport::TestCase
     assert_equal 9, genocolorectals[0].attribute_map['teststatus']
   end
 
-  test 'process_targeted_no_scope_normal' do 
+  test 'process_targeted_no_scope_normal' do
     exon_record = build_raw_record('pseudo_id1' => 'bob')
     exon_record.raw_fields['genetictestscope'] = 'efgh'
     exon_record.raw_fields['karyotypingmethod'] = 'abcd'
@@ -193,7 +247,7 @@ class SheffieldHandlerColorectalTest < ActiveSupport::TestCase
     assert_nil genocolorectals[0].attribute_map['gene']
   end
 
-  test 'process_targeted_no_scope_abnormal' do 
+  test 'process_targeted_no_scope_abnormal' do
     exon_record = build_raw_record('pseudo_id1' => 'bob')
     exon_record.raw_fields['genetictestscope'] = 'efgh'
     exon_record.raw_fields['karyotypingmethod'] = 'abcd'
@@ -207,6 +261,42 @@ class SheffieldHandlerColorectalTest < ActiveSupport::TestCase
     assert_equal 'p.Gln123fs', genocolorectals[0].attribute_map['proteinimpact']
     assert_equal 'c.1234_1345del', genocolorectals[0].attribute_map['codingdnasequencechange']
     assert_equal 2804, genocolorectals[0].attribute_map['gene']
+  end
+
+  test 'process_targeted_diagnostic_familial_r240' do
+    diag_fam_record = build_raw_record('pseudo_id1' => 'bob')
+    diag_fam_record.raw_fields['genetictestscope'] = 'R210'
+    diag_fam_record.raw_fields['karyotypingmethod'] = 'R240.1 :: Diagnostic familial - MLPA in Leeds - Send Blood'
+    diag_fam_record.raw_fields['genotype'] = 'MSH2-c.1234_5678del-p.(Gln321fs)-Heterozygous-UV5'
+    @handler.add_test_scope_from_geno_karyo(@genotype, diag_fam_record)
+    @handler.add_test_type(@genotype, diag_fam_record)
+    genocolorectals = @handler.process_variants_from_record(@genotype, diag_fam_record)
+    assert_equal 1, genocolorectals.size
+    assert_equal 'Targeted Colorectal Lynch or MMR', @genotype.attribute_map['genetictestscope']
+    assert_equal 1, @genotype.attribute_map['moleculartestingtype']
+    assert_equal 2, genocolorectals[0].attribute_map['teststatus']
+    assert_equal 2804, genocolorectals[0].attribute_map['gene']
+    assert_equal 'p.Gln321fs', genocolorectals[0].attribute_map['proteinimpact']
+    assert_equal 'c.1234_5678del', genocolorectals[0].attribute_map['codingdnasequencechange']
+  end
+
+  test 'process_targeted_predictive_testing_r242' do
+    predictive_record = build_raw_record('pseudo_id1' => 'bob')
+    predictive_record.raw_fields['genetictestscope'] = 'R210'
+    predictive_record.raw_fields['karyotypingmethod'] = 'R242 :: Predictive testing for known familial pathogenic variant(s) - Hereditary Cancers'
+    predictive_record.raw_fields['genotype'] = 'MSH2-c.1234_5678del-p.(Gln321fs)-Heterozygous-UV5'
+    predictive_record.raw_fields['moleculartestingtype'] = 'cabbage'
+    @handler.add_test_scope_from_geno_karyo(@genotype, predictive_record)
+    # get moleculartestingtype from karyo (priority 2)
+    @handler.add_test_type(@genotype, predictive_record)
+    genocolorectals = @handler.process_variants_from_record(@genotype, predictive_record)
+    assert_equal 1, genocolorectals.size
+    assert_equal 'Targeted Colorectal Lynch or MMR', @genotype.attribute_map['genetictestscope']
+    assert_equal 2, @genotype.attribute_map['moleculartestingtype']
+    assert_equal 2, genocolorectals[0].attribute_map['teststatus']
+    assert_equal 2804, genocolorectals[0].attribute_map['gene']
+    assert_equal 'p.Gln321fs', genocolorectals[0].attribute_map['proteinimpact']
+    assert_equal 'c.1234_5678del', genocolorectals[0].attribute_map['codingdnasequencechange']
   end
 
   test 'process_cdna_change' do

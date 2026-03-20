@@ -76,6 +76,11 @@ module Import
           end
 
           def process_scope_r210(karyo, genocolorectal, moleculartestingtype)
+            if karyo.downcase.match(/r240.1\s::\sdiagnostic\sfamilial/)
+              karyo='R240.1 :: Diagnostic familial'
+            elsif karyo.downcase.match(/r242.1\s::\spredictive\stesting/)
+              karyo='R242.1 :: Predictive testing'
+            end
             if R210_PANEL_GENE_MAPPING_FS.keys.include? karyo
               @logger.debug "ADDED FULL_SCREEN TEST for: #{karyo}"
               genocolorectal.add_test_scope(:full_screen)
@@ -118,6 +123,16 @@ module Import
               @logger.debug "ADDED FULL_SCREEN TEST for: #{karyo}"
               genocolorectal.add_test_scope(:full_screen)
               @genes_set = R414_PANEL_GENE_MAPPING_FS[karyo]
+            else
+              genocolorectal.add_test_scope(:no_genetictestscope)
+            end
+          end
+
+          def process_scope_r216(karyo, genocolorectal, moleculartestingtype)
+            if R216_PANEL_GENE_MAPPING_FS.keys.include? karyo
+              @logger.debug "ADDED FULL_SCREEN TEST for: #{karyo}"
+              genocolorectal.add_test_scope(:full_screen)
+              @genes_set = R216_PANEL_GENE_MAPPING_FS[karyo]
             else
               genocolorectal.add_test_scope(:no_genetictestscope)
             end
@@ -183,10 +198,33 @@ module Import
           end
 
           def add_test_type(genocolorectal, record)
-            moltestingtype = record.raw_fields['moleculartestingtype']
+            karyo = record.raw_fields['karyotypingmethod'].strip
+            moleculartestingtype = record.raw_fields['moleculartestingtype'].strip.downcase
 
-            genocolorectal.add_molecular_testing_type_strict(TEST_TYPE_MAPPING_COLO[moltestingtype.
-              downcase])
+            test_type = determine_test_type(moleculartestingtype, karyo)
+            genocolorectal.add_molecular_testing_type_strict(test_type) if test_type
+          end
+
+          def determine_test_type(moleculartestingtype, karyo)
+            # First priority: moleculartestingtype
+            return TEST_TYPE_MAPPING_COLO[moleculartestingtype] if TEST_TYPE_MAPPING_COLO.key?(moleculartestingtype)
+            return :predictive if moleculartestingtype.match?(/unaffected/i)
+
+            # Second priority: karyo R-number patterns
+            test_type_from_karyo(karyo)
+          end
+
+          def test_type_from_karyo(karyo)
+            case karyo
+            when /^R(240|205|206|207|208|209|210|211|430|444|216|414|370)/
+              :diagnostic
+            when /^R242/
+              :predictive
+            when /^R(244|246)/
+              :carrier
+            when /^R448/
+              :prenatal
+            end
           end
 
           def process_variants_from_record(genocolorectal, record)
@@ -276,11 +314,10 @@ module Import
             negative_genes = @genes_set
             if !negative_genes.empty?
               add_other_genes_with_status(negative_genes, genocolorectal, genocolorectals, 1)
-            else 
+            else
               genocolorectals.append(genocolorectal)
             end
-        
-          
+                 
             genocolorectals
           end
 

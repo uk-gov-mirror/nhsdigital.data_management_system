@@ -48,8 +48,7 @@ module Import
               'r218 :: multiple endocrine neoplasia type 2',
               'r365 :: fumarate hydratase-related tumour syndromes - sdgs',
               'r240 - familial diagnostic testing - hered cancers',
-              'r206 :: inherited breast cancer and ovarian cancer at high familial risk levels',
-              'r216 :: li fraumeni syndrome - sdgs'
+              'r206 :: inherited breast cancer and ovarian cancer at high familial risk levels'
             ].freeze
 
             GENETICTESTSCOPE_METHOD_MAPPING = {
@@ -57,14 +56,17 @@ module Import
               'r209 :: inherited colorectal cancer '\
               '(with or without polyposis)' => :process_scope_r209,
               'r210 :: inherited mmr deficiency (lynch syndrome)' => :process_scope_r210,
+              'r210' => :process_scope_r210,
               'r211 :: inherited polyposis - germline test' => :process_scope_r211,
+              'r211'  => :process_scope_r211,
               'fap' => :process_scope_fap,
               'fap familial mutation' => :process_scope_fap_familial,
               'hnpcc' => :process_scope_hnpcc,
               'myh' => :process_scope_myh,
               'breast ovarian & colorectal cancer panel' => :process_scope_colo_ovarian_panel,
               'r211 :: inherited polyposis and early onset colorectal cancer, germline testing'=> :process_scope_r211,
-              'r414 :: apc associated polyposis'=> :process_scope_r414
+              'r414 :: apc associated polyposis'=> :process_scope_r414,
+              'r216 :: li fraumeni syndrome - sdgs' => :process_scope_r216
             }.freeze
 
             COLO_PANEL_GENE_MAPPING_FS = {
@@ -117,18 +119,18 @@ module Import
               'R210.2 :: Small panel in Leeds' => %w[MLH1 MSH2 MSH6 PMS2 EPCAM],
               'R210.2 :: Unknown mutation(s) by Small panel' => %w[MLH1 MSH2 MSH6 PMS2 EPCAM],
               'R210.5 :: Unknown mutation(s) by MLPA or equivalent' => %w[MLH1 MSH2 EPCAM],
-              'R210.1 :: Unknown mutation(s) by Microsatellite instability'=> %w[MLH1 MSH2 MSH6 PMS2 EPCAM],
-              'R210.2 :: Small panel in Leeds - Send DNA'=> %w[MLH1 MSH2 MSH6 PMS2 EPCAM]
+              'R210.1 :: Unknown mutation(s) by Microsatellite instability' => %w[MLH1 MSH2 MSH6 PMS2 EPCAM],
+              'R210.2 :: Small panel in Leeds - Send DNA' => %w[MLH1 MSH2 MSH6 PMS2 EPCAM],
+              'R210.2 :: Small panel in Leeds - DNA in Newcastle' => %w[MLH1 MSH2 MSH6 PMS2 EPCAM]
             }.freeze
 
             R210_PANEL_GENE_MAPPING_TAR = {
               'R240.1 :: Diagnostic familial' => %w[MLH1 MSH2 MSH6 PMS2 EPCAM],
               'R242.1 :: Predictive MLPA' => %w[MLH1 MSH2 EPCAM],
               'R242.1 :: Predictive testing' => %w[MLH1 MSH2 MSH6 PMS2 EPCAM],
-              'R242.1 :: Predictive testing - MLPA in Leeds - Send Blood'=> %w[MLH1 MSH2 MSH6 PMS2 EPCAM],
-              'R242.1 :: Predictive testing - MLPA in Leeds - Send DNA'=> %w[MLH1 MSH2 MSH6 PMS2 EPCAM],
-              'R242.1 :: Predictive testing - Seq in Leeds - Send Blood'=> %w[MLH1 MSH2 MSH6 PMS2 EPCAM],
-              'R242.1 :: Predictive testing - Seq in Leeds - Send DNA'=> %w[MLH1 MSH2 MSH6 PMS2 EPCAM]
+              'R240 :: Diagnostic testing for known pathogenic variant(s) - Hereditary Cancers' => %w[MLH1 MSH2 MSH6 PMS2 EPCAM],
+              'R242 :: Predictive testing for known familial pathogenic variant(s) - Hereditary Cancers' => %w[MLH1 MSH2 MSH6 PMS2 EPCAM],
+              'R448.1 :: Sequence analysis - Sanger in Newcastle' => %w[MLH1 MSH2 MSH6 PMS2 EPCAM]
             }.freeze
 
             R210_PANEL_GENE_MAPPING_MOL = {
@@ -140,7 +142,8 @@ module Import
               'R211.1 :: Small Panel in Leeds' => %w[APC BMPR1A EPCAM MLH1 MSH2 MSH6 MUTYH NTHL1 PMS2 POLD1 POLE PTEN RNF43 SMAD4 STK11],
               'R211.1 :: Small panel in Leeds - send DNA sample'=> %w[APC BMPR1A EPCAM MLH1 MSH2 MSH6 MUTYH NTHL1 PMS2 POLD1 POLE PTEN RNF43 SMAD4 STK11],
               'R211.1 :: APC and MUTYH genes in Leeds' => %w[APC MUTYH],
-              'R211.2 :: Unknown mutation(s) by MLPA or equivalent' => %w[APC MUTYH]
+              'R211.2 :: Unknown mutation(s) by MLPA or equivalent' => %w[APC MUTYH],
+              'R246.1 :: Small panel Carrier testing of partners at population risk' => %w[]
             }.freeze
 
             R211_PANEL_GENE_MAPPING_TAR = {
@@ -149,13 +152,20 @@ module Import
               'R242.1 :: Predictive testing' => %w[APC BMPR1A EPCAM MLH1 MSH2 MSH6 MUTYH NTHL1 PMS2 POLD1 POLE PTEN RNF43 SMAD4 STK11],
               'R242.1 :: Predictive testing - Seq in Leeds - Send Blood' => %w[APC BMPR1A EPCAM MLH1 MSH2 MSH6 MUTYH NTHL1 PMS2 POLD1 POLE PTEN RNF43 SMAD4 STK11],
               'R242.1 :: Predictive testing - Seq in Leeds - Analysis only'=> %w[APC BMPR1A EPCAM MLH1 MSH2 MSH6 MUTYH NTHL1 PMS2 POLD1 POLE PTEN RNF43 SMAD4 STK11],
-              'R242.1 :: Predictive testing - Seq in Leeds - Send DNA'=> %w[APC BMPR1A EPCAM MLH1 MSH2 MSH6 MUTYH NTHL1 PMS2 POLD1 POLE PTEN RNF43 SMAD4 STK11]
+              'R242.1 :: Predictive testing - Seq in Leeds - Send DNA'=> %w[APC BMPR1A EPCAM MLH1 MSH2 MSH6 MUTYH NTHL1 PMS2 POLD1 POLE PTEN RNF43 SMAD4 STK11],
+              'R242.1 :: Predictive testing - Seq in Leeds' => %w[APC BMPR1A EPCAM MLH1 MSH2 MSH6 MUTYH NTHL1 PMS2 POLD1 POLE PTEN RNF43 SMAD4 STK11],
+              'R242 :: Predictive testing for known familial pathogenic variant(s) - Hereditary Cancers' => %w[APC BMPR1A EPCAM MLH1 MSH2 MSH6 MUTYH NTHL1 
+                                                                                                               PMS2 POLD1 POLE PTEN RNF43 SMAD4 STK11]
             }.freeze
 
             R211_PANEL_GENE_MAPPING_MOL = {
               'R387.1 ::  APC and MUTYH analysis only' => %w[APC MUTYH],
               'R244.1 :: Carrier testing' => %w[MUTYH]
             }.freeze
+
+            R216_PANEL_GENE_MAPPING_FS = {
+              'R216.1 :: TP53 NGS in Leeds Analysis only' => %w[TP53]
+          }.freeze
 
             FAP_PANEL_GENE_MAPPING_MOL = {
               'APC gene MLPA' => %w[APC],
@@ -191,6 +201,7 @@ module Import
               'Full panel' => %w[ATM BRCA1 BRCA2 BRIP1 CDH1 CHEK2 EPCAM MLH1 MSH2 MSH6 PALB2
                                  PTEN RAD51C RAD51D STK11 TP53 PMS2]
             }.freeze
+
 
             MOLECULAR_SCOPE_MAPPING = {
               'carrier testing' => :no_genetictestscope,
