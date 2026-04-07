@@ -6,8 +6,8 @@ source 'https://rubygems.org'
 # README) is available at:
 #  https://github.com/NHSDigital/activemodel-caution.git
 
-gem 'activemodel-caution', '7.2.2.0' # Supports rails ~> 7.2.2.0
-gem 'rails', '~> 7.2.2', '>= 7.2.2.2'
+gem 'activemodel-caution', '7.2.3.0' # Supports rails ~> 7.2.3.0
+gem 'rails', '~> 7.2.3', '>= 7.2.3.1'
 # Fixes uninitialized constant ActiveSupport::LoggerThreadSafeLevel::Logger on Rails 7.0x
 # and earlier. See https://github.com/rails/rails/issues/54260.
 gem 'concurrent-ruby', '1.3.4'
