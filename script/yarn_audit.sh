@@ -63,6 +63,14 @@ YARN_IGNORE+=(GHSA-qffp-2rhf-9h96)
 YARN_IGNORE+=(GHSA-9ppj-qmqm-q256)
 # Serialize JavaScript is Vulnerable to RCE via RegExp.flags and Date.prototype.toISOString()
 YARN_IGNORE+=(GHSA-5c6j-r48x-rmvq)
+# Forge has a basicConstraints bypass in its certificate chain verification (RFC 5280 violation)
+YARN_IGNORE+=(GHSA-2328-f5f3-gj25)
+# Forge has signature forgery in Ed25519 due to missing S > L check
+YARN_IGNORE+=(GHSA-q67f-28xg-22rw)
+# Forge has Denial of Service via Infinite Loop in BigInteger.modInverse() with Zero Input
+YARN_IGNORE+=(GHSA-5m6q-g25r-mvwx)
+# Forge has signature forgery in RSA-PKCS due to ASN.1 extra field
+YARN_IGNORE+=(GHSA-ppp5-5v6c-4jwp)
 
 YARN_IGNORE_JSON="`echo ${YARN_IGNORE[@]} | sed -e 's/^/"/' -e 's/$/"/' -e 's/ /", "/g'`"
 echo "yarn audit --no-progress --level high --json"
