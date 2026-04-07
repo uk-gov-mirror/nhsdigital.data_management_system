@@ -397,8 +397,11 @@ class CreateAndEditProjectTest < ActionDispatch::IntegrationTest
     fill_in 'project_first_contact_date', with: '06/06/2022'
     fill_in 'project_name', with: 'EOI project test'
     fill_in 'project_project_purpose', with: 'more details here'
+    select 'Standard2 User2', from: 'project_owner_grant_attributes_user_id'
+    select 'Anonymous', from: 'project_level_of_identifiability'
     click_link 'Add Dataset'
     click_button 'Create EOI'
+    assert_text 'EOI was successfully created.'
 
     eoi_project = Project.find_by(name: 'EOI project test')
     visit project_path(eoi_project)
@@ -407,10 +410,10 @@ class CreateAndEditProjectTest < ActionDispatch::IntegrationTest
     fill_in 'project_application_log', with: 'ODR2223_100', fill_options: { clear: :backspace }
     click_on 'Update EOI'
 
-    assert has_content? 'ODR Reference: ODR2223_100'
+    assert_text 'ODR Reference: ODR2223_100'
 
     eoi_project.reload
-    assert eoi_project.application_log, 'ODR2223_100'
+    assert 'ODR2223_100', eoi_project.application_log
   end
 
   private

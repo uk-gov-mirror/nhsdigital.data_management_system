@@ -18,7 +18,9 @@ class NotificationUserTest < ActionDispatch::IntegrationTest
 
     assert_difference('Notification.count', 1) do
       fill_in 'Password', with: 'WRONGPASSWORD'
+      assert_no_text 'Failed to enter the correct password 3 times'
       find_button('Log in').click
+      assert_text 'Failed to enter the correct password 3 times'
     end
     assert Notification.last.title.include? 'User has entered wrong password 3 times'
 

@@ -52,7 +52,8 @@ class ApplicationProjectTest < ActionDispatch::IntegrationTest
         fill_in 'project_comments_attributes_0_body', with: 'not today!'
         click_button 'Save'
       end
-      assert has_text? 'DPIA Rejected'
+      assert_no_selector '#modal-dpia_rejected'
+      assert_text 'DPIA Rejected'
     end
 
     assert has_no_button?('Begin DPIA')

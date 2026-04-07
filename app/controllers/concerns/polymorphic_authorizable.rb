@@ -52,7 +52,7 @@ module PolymorphicAuthorizable
     def _make_collection_accessible(resource_name)
       variable_name = "@#{resource_name.to_s.pluralize}"
 
-      before_action only: [:index, :index_new] do
+      before_action only: [:index] do
         relation = instance_variable_get(variable_name)
         conditions = relation.where_values_hash
         relation = relation.unscope(:where).where(conditions)

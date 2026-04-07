@@ -42,7 +42,7 @@ gem 'delayed_job_active_record'
 
 gem 'cancancan', '~> 3.0'
 gem 'cocoon'
-gem 'devise', '~> 4.7', '>=  4.7.1'
+gem 'devise', '~> 5.0'
 gem 'highline'
 gem 'paper_trail', '~> 16.0'
 gem 'paper_trail-association_tracking'

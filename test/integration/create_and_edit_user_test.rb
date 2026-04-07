@@ -33,11 +33,12 @@ class CreateAndEditUserTest < ActionDispatch::IntegrationTest
 
     fill_in 'user_last_name', with: 'MOUSE'
 
-    assert_difference('User.count', 1) { click_button 'Save' }
-
-    assert page.has_content?('User was successfully created')
-    assert page.has_text?('MICKEY')
-    assert page.has_text?('MOUSE')
+    assert_difference('User.count', 1) do
+      click_button 'Save'
+      assert page.has_content?('User was successfully created')
+      assert page.has_text?('MICKEY')
+      assert page.has_text?('MOUSE')
+    end
 
     visit user_path(User.last)
     assert page.has_content?('AA')

@@ -218,7 +218,9 @@ class CasApplicationFormTest < ActionDispatch::IntegrationTest
     select('Yes', from: 'cas_application_declaration_3')
     select('Yes', from: 'cas_application_declaration_4')
 
+    assert_no_text 'CAS was successfully created.'
     click_button('Create Application')
+    assert_text 'CAS was successfully created.'
 
     project_datasets = Project.last.project_datasets
 
@@ -237,7 +239,9 @@ class CasApplicationFormTest < ActionDispatch::IntegrationTest
       find(:css, "#dataset_#{dataset(83).id}_level_1_check_box").set(false)
     end
 
+    assert_no_text 'CAS was successfully updated.'
     click_button('Update Application')
+    assert_text 'CAS was successfully updated.'
 
     assert_equal project_datasets.size, 2
     assert_equal project_datasets.pluck(:dataset_id).sort, [84, 86]
@@ -250,7 +254,9 @@ class CasApplicationFormTest < ActionDispatch::IntegrationTest
         set((Time.zone.now + 1.year).strftime('%d/%m/%Y'))
     end
 
+    assert_no_text 'CAS was successfully updated.'
     click_button('Update Application')
+    assert_text 'CAS was successfully updated.'
 
     assert_equal project_datasets.size, 3
     assert_equal project_datasets.find_by(dataset_id: 83).project_dataset_levels.size, 1
@@ -262,7 +268,9 @@ class CasApplicationFormTest < ActionDispatch::IntegrationTest
       find(:css, "#dataset_#{dataset(86).id}_level_2_check_box").set(false)
     end
 
+    assert_no_text 'CAS was successfully updated.'
     click_button('Update Application')
+    assert_text 'CAS was successfully updated.'
 
     assert_equal project_datasets.size, 2
     assert_equal project_datasets.pluck(:dataset_id).sort, [83, 84]
@@ -273,7 +281,9 @@ class CasApplicationFormTest < ActionDispatch::IntegrationTest
       find(:css, "#dataset_#{dataset(86).id}_level_2_check_box").set(true)
     end
 
+    assert_no_text 'CAS was successfully updated.'
     click_button('Update Application')
+    assert_text 'CAS was successfully updated.'
 
     assert_equal project_datasets.size, 3
     assert_equal project_datasets.find_by(dataset_id: 86).project_dataset_levels.size, 1

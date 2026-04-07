@@ -8,7 +8,7 @@ class AccountLockingTest < ActionDispatch::IntegrationTest
     wrong_password = 'wordpass'
 
     attempt_login_with(username, wrong_password) # 1
-    assert page.has_content?('Invalid Username or password.')
+    assert_text('Invalid username or password')
 
     attempt_login_with(username, wrong_password) # 2
     assert page.has_content?('You have one more attempt before your account is locked.')

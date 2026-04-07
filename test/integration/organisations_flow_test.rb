@@ -51,19 +51,19 @@ class OrganisationsFlowsTest < ActionDispatch::IntegrationTest
     assert_no_changes -> { @organisation.reload.name } do
       assert_no_changes -> { @organisation.reload.add1 } do
         click_button 'Update Organisation'
+        assert_text(/\d+ errors? prevented this record from being saved/)
       end
     end
 
-    assert page.has_text?(/\d+ errors? prevented this record from being saved/)
 
     fill_in :organisation_name, with: 'Test Org #1'
 
     assert_changes -> { @organisation.reload.name } do
       click_button 'Update Organisation'
+      assert_text 'Organisation was successfully updated.'
     end
 
     assert_current_path organisation_path(@organisation)
-    assert page.has_text? 'Organisation was successfully updated.'
   end
 
   # TODO - Clarify what happens when destroying an organisation, particulary if any organisation

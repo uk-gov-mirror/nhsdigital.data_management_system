@@ -24,6 +24,7 @@ class ProjectImportTest < ActionDispatch::IntegrationTest
     assert_current_path team_path(team)
 
     click_button 'Import'
+    assert_text 'Drag and drop PDF here'
 
     assert_difference -> { team.projects.count } do
       assert_difference -> { ProjectAttachment.count } do
@@ -33,6 +34,7 @@ class ProjectImportTest < ActionDispatch::IntegrationTest
           find('.glyphicon-inbox').click
         end
 
+        assert_selector '#project_header', visible: true
         within '#project_header' do
           assert has_text? 'My Test Import Project'
         end
@@ -47,6 +49,7 @@ class ProjectImportTest < ActionDispatch::IntegrationTest
     assert_current_path team_path(team)
 
     click_button 'Import'
+    assert_text 'Drag and drop PDF here'
 
     # Invalid record(s)...
     assert_no_difference -> { team.projects.count } do
@@ -56,6 +59,7 @@ class ProjectImportTest < ActionDispatch::IntegrationTest
         find('.glyphicon-inbox').click
       end
 
+      assert_selector '#modal', visible: true
       within_modal do
         assert has_text? 'Could not import file!'
         assert has_text? "Email can't be blank"
@@ -111,7 +115,7 @@ class ProjectImportTest < ActionDispatch::IntegrationTest
 
     visit edit_project_path(project)
 
-    assert has_text?('Drag and drop PDF here')
+    assert_text('Drag and drop PDF here')
 
     assert_changes -> { project.reload.updated_at } do
       assert_difference -> { project.project_attachments.count } do
@@ -119,8 +123,8 @@ class ProjectImportTest < ActionDispatch::IntegrationTest
           find('.glyphicon-inbox').click
         end
 
-        assert has_no_text?('Provisional Title')
-        assert has_text?('My Test Import Project')
+        assert_no_text('Provisional Title')
+        assert_text('My Test Import Project')
         assert_current_path project_path(project)
       end
     end
