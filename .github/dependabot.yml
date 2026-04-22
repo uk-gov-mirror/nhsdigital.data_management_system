@@ -20,3 +20,9 @@ updates:
     exclude-paths:
       - "*"
     open-pull-requests-limit: 0 # Disable version updates for npm dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    cooldown:
+      default-days: 7 # Wait 7 days after publication

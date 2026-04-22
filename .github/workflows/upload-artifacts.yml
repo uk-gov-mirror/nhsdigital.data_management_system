@@ -15,7 +15,7 @@ jobs:
       AWS_DEFAULT_REGION: eu-west-2
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # actions/checkout@v6 see https://github.com/actions/checkout/releases/tag/v6
 
       - name: Confirm AWS destinations for deployments
         run: echo AWS_GITHUB_ACTIONS_DEPLOY_ROLE="${{ secrets.AWS_GITHUB_ACTIONS_DEPLOY_ROLE }}", AWS_GITHUB_ACTIONS_S3_BUCKET="${{ secrets.AWS_GITHUB_ACTIONS_S3_BUCKET }}"
@@ -26,7 +26,7 @@ jobs:
           AWS_GITHUB_ACTIONS_DEPLOY_ROLE: ${{secrets.AWS_GITHUB_ACTIONS_DEPLOY_ROLE}}
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@67fbcbb121271f7775d2e7715933280b06314838 # aws-actions/configure-aws-credentials@v1 see https://github.com/aws-actions/configure-aws-credentials/releases/tag/v1
         with:
           # role-to-assume: arn:aws:iam::[aws-account-id]:role/dms-github-actions-deploy-role
           # To find the role name, login to AWS Openstack Dev IAM and search for
@@ -36,7 +36,7 @@ jobs:
           aws-region: ${{env.AWS_DEFAULT_REGION}}
 
       - name: Zip artifacts
-        uses: thedoctor0/zip-release@master
+        uses: thedoctor0/zip-release@a24011d8d445e4da5935a7e73c1f98e22a439464 # thedoctor0/zip-release@master see https://github.com/TheDoctor0/zip-release/tree/master
         with:
           type: "zip"
           filename: "mbis_app.zip"
