@@ -89,13 +89,27 @@ done
 
 if cat yarn_audit.json | jq -c 'select ( .type == "auditAdvisory" and (.data.advisory.github_advisory_id | IN ('"$YARN_IGNORE_JSON"') | not) )' | jq -Me; then
    echo
-   echo Warning: New yarn audit vulnerabilities found in yarn.lock, listed above.
-   echo Run script/yarn_audit.sh upgrade, or update YARN_IGNORE in
-   echo script/yarn_audit.sh with accepted github_advisory_id values.
-   echo e.g. by running:
-   echo "$0 | grep -e title -e github_advisory_id | sed -E -e 's/^ *\"title\": \"(.*)\",\$/# \\1/' -e 's/^ *\"github_advisory_id\": \"(.*)\",/YARN_IGNORE+=(\\1)/'"
-   exit 1
+   echo Warning: New yarn audit vulnerabilities found in yarn.lock, listed above. Run
+   echo "  script/yarn_audit.sh upgrade"
+   echo then update YARN_IGNORE in script/yarn_audit.sh with accepted
+   echo github_advisory_id values, e.g. by running:
+   echo "  $0 | grep -e title -e github_advisory_id | sed -E -e 's/^ *\"title\": \"(.*)\",\$/# \\1/' -e 's/^ *\"github_advisory_id\": \"(.*)\",/YARN_IGNORE+=(\\1)/'"
+   EXITSTATUS=1
 else
    rm -f yarn_audit.json
    echo No new yarn audit vulnerabilities found
+   EXITSTATUS=0
 fi
+
+if [ "$EXITSTATUS" != "" ] || ! git diff --exit-code script/yarn_audit.sh yarn.lock > /dev/null; then
+   echo
+   echo To commit changes, run:
+   echo "("
+   echo "  git checkout -b feature/yarn_upgrade_`date +%Y%m%d`"
+   echo "  git clean -f vendor/npm-packages-offline-cache/"
+   echo "  git add yarn.lock script/yarn_audit.sh vendor/npm-packages-offline-cache/"
+   echo "  git commit -m 'yarn upgrade'"
+   echo ")"
+fi
+
+exit $EXITSTATUS
