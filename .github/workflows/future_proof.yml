@@ -57,7 +57,7 @@ jobs:
       - name: Remove Gemfile.lock so we get the latest gems
         run: rm Gemfile.lock
       - name: Set up Ruby + Bundle
-        uses: ruby/setup-ruby@0cb964fd540e0a24c900370abf38a33466142735 # ruby/setup-ruby@v1 see https://github.com/ruby/setup-ruby/tree/v1
+        uses: ruby/setup-ruby@6aaa311d81eba98ae12eaffbcb63296ace0efcde # ruby/setup-ruby@v1 see https://github.com/ruby/setup-ruby/tree/v1
         with:
           bundler-cache: true
           ruby-version: ${{ matrix.ruby-version }}
