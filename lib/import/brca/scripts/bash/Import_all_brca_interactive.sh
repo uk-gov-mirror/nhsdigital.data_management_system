@@ -134,7 +134,10 @@ done
 RQ3 () {
 PROV='RQ3'
 IFS=$'\n'
+# Ignore 2 RQ3 files submitted in 2026 which contain both BRCA and Germline data.
+# Our plan is not to load these as pseudonymised data, but rather into live encore.
 for x in $(find  $DIRPATH/$FILEPATH -type f -name "*.pseudo" -path "*/$PROV/*" \
+-not -path "*/2026/*" \
 -not -path "*/2018-02-06/*" \
 ! -iname "*Rare*" \
 ! -iname "*Colon*" \
@@ -151,7 +154,9 @@ RJ1 () {
 MBIS=$1
 PROV='RJ1'
 IFS=$'\n'
+# Germline refresh should ignore new RJ1 data files submitted in 2026 in a new format.
 for x in $(find  $DIRPATH/$FILEPATH -type f -name "*.pseudo" -path "*/$PROV/*" \
+-not -path "*/2026/*" \
 ! -name ""Dummy_Pseudo_RJ1.pseudo)
 do
 IFS="$OIFS"
