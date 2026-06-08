@@ -18,7 +18,7 @@ gem 'stringio', '3.1.1' # psych dependency: exactly match the default version on
 gem 'pg', '~> 1.4.6' # All client instance have postgres version >= 9.3
 
 # use Puma as the app server
-gem 'puma', '~> 6.0'
+gem 'puma', '~> 7.0'
 gem 'puma-daemon', require: false
 
 # Use SCSS for stylesheets
