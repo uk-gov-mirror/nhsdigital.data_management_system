@@ -10,7 +10,7 @@ gem 'activemodel-caution', '7.2.3.0' # Supports rails ~> 7.2.3.0
 gem 'rails', '~> 7.2.3', '>= 7.2.3.1'
 # Fixes uninitialized constant ActiveSupport::LoggerThreadSafeLevel::Logger on Rails 7.0x
 # and earlier. See https://github.com/rails/rails/issues/54260.
-gem 'concurrent-ruby', '1.3.4'
+gem 'concurrent-ruby', '1.3.7'
 gem 'psych', '4.0.4' # Exactly match the version on Ruby 3.1
 gem 'stringio', '3.1.1' # psych dependency: exactly match the default version on Ruby 3.3
 
