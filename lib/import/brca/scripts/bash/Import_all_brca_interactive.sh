@@ -169,6 +169,7 @@ MBIS=$1
 PROV='RGT'
 IFS=$'\n'
 for x in $(find  $DIRPATH/$FILEPATH -type f -name "*.pseudo" -path "*/$PROV/*" \
+-not -path "*/2025/*" \
   ! -name "*Lynch*" \
   ! -name "*mlpa_test*" \
   ! -name "*dummy*")
@@ -246,7 +247,8 @@ for x in $(find  $DIRPATH/$FILEPATH -type f -name "*.pseudo" -path "*/$PROV/*" \
 -not -path "*/2024-07*/*" \
 -not -path "*/2024-08*/*" \
 -not -path "*/2024-09*/*" \
--not -path "*/2025/*" )
+-not -path "*/2025/*" \
+-not -path "*/2026/*" )
 do
 IFS="$OIFS"
 $BRAKE import:brca fname="$(echo "$x" | sed -e 's:.*pseudonymised_data/\(.*\):\1:')" prov_code=$PROV

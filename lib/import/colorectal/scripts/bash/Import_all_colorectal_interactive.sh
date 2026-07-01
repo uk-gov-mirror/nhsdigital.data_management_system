@@ -165,7 +165,8 @@ for x in $(find  $DIRPATH/$FILEPATH -not -path "*/API_BETA_RETRIEVED/*" -type f 
 -not -path "*/2024-07*/*" \
 -not -path "*/2024-08*/*" \
 -not -path "*/2024-09*/*" \
--not -path "*/2025/*" )
+-not -path "*/2025/*" \
+-not -path "*/2026/*" )
 do
 IFS="$OIFS"
 $BRAKE import:colorectal fname="$(echo "$x" | sed -e 's:.*pseudonymised_data/\(.*\):\1:')" prov_code=$PROV
