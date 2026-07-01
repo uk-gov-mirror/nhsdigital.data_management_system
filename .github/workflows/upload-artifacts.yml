@@ -26,7 +26,7 @@ jobs:
           AWS_GITHUB_ACTIONS_DEPLOY_ROLE: ${{secrets.AWS_GITHUB_ACTIONS_DEPLOY_ROLE}}
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # aws-actions/configure-aws-credentials@v6.1.1 see https://github.com/aws-actions/configure-aws-credentials/releases/tag/v6.1.1
+        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # aws-actions/configure-aws-credentials@v6.2.0 see https://github.com/aws-actions/configure-aws-credentials/releases/tag/v6.2.0
         with:
           # role-to-assume: arn:aws:iam::[aws-account-id]:role/dms-github-actions-deploy-role
           # To find the role name, login to AWS Openstack Dev IAM and search for
