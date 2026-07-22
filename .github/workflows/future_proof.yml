@@ -19,6 +19,7 @@ jobs:
         ruby-version:
           - '3.3' # Latest ruby 3.3.x
           - '3.4' # Latest ruby 3.4.x
+          - '4.0' # Latest ruby 4.0.x
 
     name: "Ruby ${{ matrix.ruby-version }} Smoke Tests"
 
@@ -50,14 +51,19 @@ jobs:
       # TODO: Install apache-arrow, parquet-glib-devel etc., remove rdc from the following line:
       # TODO: Install oracle client libraries, remove oracle from the following line:
       BUNDLE_WITHOUT: rdc:oracle
+      BUNDLE_COOLDOWN: 7
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # actions/checkout@v6 see https://github.com/actions/checkout/releases/tag/v6
       - name: Remove Gemfile.lock so we get the latest gems
         run: rm Gemfile.lock
       - name: Set up Ruby + Bundle
-        uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # ruby/setup-ruby@v1 see https://github.com/ruby/setup-ruby/tree/v1
+        uses: ruby/setup-ruby@a30dfa457ad68707b8b910ac3a244714b61c0626 # ruby/setup-ruby@v1 see https://github.com/ruby/setup-ruby/tree/v1
         with:
+          # Use a bundler version that supports cooldown on ruby 3.3 / 3.4.
+          # On ruby 4.0.6 and later, the bundler version already supports cooldown.
+          # Once we exclusively use ruby 4.0.6 and later, the following line can be removed.
+          bundler: ${{ startsWith(matrix.ruby-version, '3') && '4.0.17' || '' }}
           bundler-cache: true
           ruby-version: ${{ matrix.ruby-version }}
       - name: Inject configuration
