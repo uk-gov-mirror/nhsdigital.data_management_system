@@ -61,6 +61,10 @@ YARN_IGNORE+=(GHSA-83g3-92jg-28cx)
 YARN_IGNORE+=(GHSA-qffp-2rhf-9h96)
 # node-tar Symlink Path Traversal via Drive-Relative Linkpath
 YARN_IGNORE+=(GHSA-9ppj-qmqm-q256)
+# node-tar: Decompression/parse DoS via unlimited input
+YARN_IGNORE+=(GHSA-23hp-3jrh-7fpw)
+# node-tar: Negative tar entry size causes infinite loop in archive replace
+YARN_IGNORE+=(GHSA-8x88-c5mf-7j5w)
 # Serialize JavaScript is Vulnerable to RCE via RegExp.flags and Date.prototype.toISOString()
 YARN_IGNORE+=(GHSA-5c6j-r48x-rmvq)
 # Forge has a basicConstraints bypass in its certificate chain verification (RFC 5280 violation)
@@ -71,6 +75,8 @@ YARN_IGNORE+=(GHSA-q67f-28xg-22rw)
 YARN_IGNORE+=(GHSA-5m6q-g25r-mvwx)
 # Forge has signature forgery in RSA-PKCS due to ASN.1 extra field
 YARN_IGNORE+=(GHSA-ppp5-5v6c-4jwp)
+# SVGO removeScripts plugin leaves some executable scripts intact
+YARN_IGNORE+=(GHSA-2p49-hgcm-8545)
 
 YARN_IGNORE_JSON="`echo ${YARN_IGNORE[@]} | sed -e 's/^/"/' -e 's/$/"/' -e 's/ /", "/g'`"
 echo "yarn audit --no-progress --level high --json"
