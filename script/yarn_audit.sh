@@ -77,6 +77,12 @@ YARN_IGNORE+=(GHSA-5m6q-g25r-mvwx)
 YARN_IGNORE+=(GHSA-ppp5-5v6c-4jwp)
 # SVGO removeScripts plugin leaves some executable scripts intact
 YARN_IGNORE+=(GHSA-2p49-hgcm-8545)
+# brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash
+YARN_IGNORE+=(GHSA-mh99-v99m-4gvg)
+# PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments
+YARN_IGNORE+=(GHSA-6g55-p6wh-862q)
+# PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure
+YARN_IGNORE+=(GHSA-r28c-9q8g-f849)
 
 YARN_IGNORE_JSON="`echo ${YARN_IGNORE[@]} | sed -e 's/^/"/' -e 's/$/"/' -e 's/ /", "/g'`"
 echo "yarn audit --no-progress --level high --json"
@@ -93,13 +99,13 @@ for IGNORE in ${YARN_IGNORE[@]}; do
         echo "Warning: yarn audit no longer flags github_advisory_id $IGNORE"
 done
 
-if cat yarn_audit.json | jq -c 'select ( .type == "auditAdvisory" and (.data.advisory.github_advisory_id | IN ('"$YARN_IGNORE_JSON"') | not) )' | jq -Me; then
+if cat yarn_audit.json | jq -c 'select ( .type == "auditAdvisory" and (.data.advisory.github_advisory_id | IN ('"$YARN_IGNORE_JSON"') | not) )' | jq '.data.advisory | {"title", "github_advisory_id"}' | jq -Mes 'unique | if . == [] then null end' ; then
    echo
    echo Warning: New yarn audit vulnerabilities found in yarn.lock, listed above. Run
    echo "  script/yarn_audit.sh upgrade"
    echo then update YARN_IGNORE in script/yarn_audit.sh with accepted
    echo github_advisory_id values, e.g. by running:
-   echo "  $0 | grep -e title -e github_advisory_id | sed -E -e 's/^ *\"title\": \"(.*)\",\$/# \\1/' -e 's/^ *\"github_advisory_id\": \"(.*)\",/YARN_IGNORE+=(\\1)/'"
+   echo "  $0 | grep -e title -e github_advisory_id | sed -E -e 's/^ *\"title\": \"(.*)\",\$/# \\1/' -e 's/^ *\"github_advisory_id\": \"(.*)\",?/YARN_IGNORE+=(\\1)/'"
    EXITSTATUS=1
 else
    rm -f yarn_audit.json
