@@ -26,20 +26,19 @@ class OrganisationsFlowsTest < ActionDispatch::IntegrationTest
 
     assert_no_difference('Organisation.count') do
       click_button 'Create Organisation'
+      assert_text(/\d+ errors? prevented this record from being saved/)
     end
-
-    assert page.has_text?(/\d+ errors? prevented this record from being saved/)
 
     fill_in :organisation_organisation_type_other, with: 'Council of Nightmares'
 
+    assert_no_text 'Organisation was successfully created.'
     assert_difference('Organisation.count') do
       click_button 'Create Organisation'
+      assert_text 'Organisation was successfully created.'
     end
 
     new_organisation = Organisation.order(:created_at).last
-
     assert_current_path organisation_path(new_organisation)
-    assert page.has_text? 'Organisation was successfully created.'
   end
 
   test 'should be able to update organisations' do
@@ -76,10 +75,10 @@ class OrganisationsFlowsTest < ActionDispatch::IntegrationTest
       accept_alert do
         click_link title: 'Delete', href: organisation_path(@organisation)
       end
+      assert_text 'Organisation was successfully destroyed.'
     end
 
     assert_current_path organisations_path
-    assert page.has_text? 'Organisation was successfully destroyed.'
   end
 
   test 'can create organisation with addresses' do
@@ -99,6 +98,7 @@ class OrganisationsFlowsTest < ActionDispatch::IntegrationTest
     assert_difference('Organisation.count') do
       assert_difference('Address.count') do
         click_button 'Create Organisation'
+        assert_text 'Organisation was successfully created.'
       end
     end
   end

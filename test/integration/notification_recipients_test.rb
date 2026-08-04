@@ -184,10 +184,12 @@ class NotificationRecipientsTest < ActionDispatch::IntegrationTest
   test 'user password reset request' do
     @user = users(:standard_user_one_team)
     visit root_path
-    # assert_difference('Notification.count', 1) do
-      click_on 'Forgot your password?'
-      fill_in 'Email', with: @user.email
-      click_on 'Send me reset password instructions'
+    assert_no_text 'You have forgotten your password'
+    # assert_difference('Notification.count', 1) do # TODO: Check: count seems to change by 2
+    click_on 'Forgot your password?'
+    fill_in 'Email', with: @user.email
+    click_on 'Send me reset password instructions'
+    assert_text 'You have forgotten your password'
     # end
     assert_equal Notification.last.title, "User has forgotten password",
     users_notified = Notification.last.users.collect(&:id).sort

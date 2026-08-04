@@ -65,6 +65,58 @@ module ActionDispatch
 
     teardown { Capybara.reset_sessions! }
 
+    # Ensure that tests do not leave extra windows open, polluting other tests.
+    teardown do
+      raise "Error: test left extra windows open: windows.count = #{windows.count}" if windows.count > 1
+    end
+
+    # Run tests with TESTS_RAISE_IF_AJAX=1 to identify potentially brittle integration tests.
+    # This also enables verbose console logging of the capybara methods called.
+    if /\A(1|y(es)?|t(rue)?)\z/i.match?(ENV.fetch('TESTS_RAISE_IF_AJAX', nil))
+      %i[accept_confirm assert_no_text assert_text click_button choose click_link click_on
+         dismiss_confirm fill_in find find_button find_by_id find_new has_link? select visit
+         within within_fieldset].each do |method_name|
+        define_method(method_name) do |*args, **kwargs, &block|
+          puts format('Before %<method_name>s(%<args>s)',
+                      method_name: method_name,
+                      args: (args.collect(&:inspect) +
+                             [("**#{kwargs.inspect}" unless kwargs.empty?)].compact).join(', '))
+          if ajax_active?
+            wait_for_ajax # Allow AJAX to complete before teardown error handling happens
+            raise "Error: Should wait_for_ajax before calling #{method_name}"
+          end
+          super(*args, **kwargs, &block)
+        end
+      end
+    end
+
+    def ajax_active?
+      page.evaluate_script("(typeof jQuery !== 'undefined') && (jQuery.active > 0)")
+    rescue Selenium::WebDriver::Error::UnexpectedAlertOpenError
+      false # AJAX might be active, but we can't tell when a modal is open
+    end
+
+    # Manually wait for AJAX requests in integration tests, for clarity.
+    def wait_for_ajax
+      started_waiting_at = Time.current
+
+      while ajax_active?
+        break if (Time.current - started_waiting_at) > Capybara.default_max_wait_time
+
+        sleep 0.01
+      end
+    end
+
+    # Prevent capybara assert_... methods from erroneously triggering
+    # 'Test is missing assertions' warnings in Rails 7.2
+    %i[assert_current_path assert_no_selector assert_no_text assert_selector assert_text].each do |method_name|
+      define_method(method_name) do |*args, **kwargs, &block|
+        result = super(*args, **kwargs, &block)
+        assert true, 'Assertion passed'
+        result
+      end
+    end
+
     # In the integration test environment, rather than trying to share a connection
     # (and thus transaction) between the test process and the tested process, use
     # the database_cleaner gem. This avoids non-deterministic failures seen with
