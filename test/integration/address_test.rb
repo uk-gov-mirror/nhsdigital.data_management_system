@@ -76,12 +76,12 @@ class AddressTest < ActionDispatch::IntegrationTest
     within("#address_#{address1.id}") do
       click_link('set as default address')
     end
+    assert_text('Default address updated')
 
     address1.reload
     assert address1.default_address == true
     assert Address.find_by(postcode: 'T3ST1NG2').default_address == false
 
-    assert has_content?('Default address updated')
     assert has_no_content?('Other Addresses')
     assert has_content?('Primary Address')
     assert has_content?('T3ST1NG')

@@ -108,8 +108,10 @@ class CreateAndActivateTeamTest < ActionDispatch::IntegrationTest
     toggle_user_role(user_one, role)
 
     assert page.find_link('ACTIVATE').matches_css?('.btn-success')
+    assert_no_text 'Team was successfully updated.'
     click_link 'ACTIVATE'
-    assert_equal Notification.last.title, 'New team created in MBIS : Test Team 4'
+    assert_text 'Team was successfully updated.'
+    assert_equal 'New team created in MBIS : Test Team 4', Notification.last.title
     assert Notification.last.admin_users
 
     assert has_no_selector?('#modal', visible: true)

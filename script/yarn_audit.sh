@@ -79,6 +79,8 @@ YARN_IGNORE+=(GHSA-ppp5-5v6c-4jwp)
 YARN_IGNORE+=(GHSA-2p49-hgcm-8545)
 # brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash
 YARN_IGNORE+=(GHSA-mh99-v99m-4gvg)
+# brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation
+YARN_IGNORE+=(GHSA-rgw5-rvv9-x895)
 # PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments
 YARN_IGNORE+=(GHSA-6g55-p6wh-862q)
 # PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure
