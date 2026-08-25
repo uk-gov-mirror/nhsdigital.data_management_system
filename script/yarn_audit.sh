@@ -65,6 +65,8 @@ YARN_IGNORE+=(GHSA-9ppj-qmqm-q256)
 YARN_IGNORE+=(GHSA-23hp-3jrh-7fpw)
 # node-tar: Negative tar entry size causes infinite loop in archive replace
 YARN_IGNORE+=(GHSA-8x88-c5mf-7j5w)
+# node-tar: Uncontrolled recursion in mapHas/filesFilter allows uncatchable stack-overflow DoS via crafted long-path tar with member selection
+YARN_IGNORE+=(GHSA-r292-9mhp-454m)
 # Serialize JavaScript is Vulnerable to RCE via RegExp.flags and Date.prototype.toISOString()
 YARN_IGNORE+=(GHSA-5c6j-r48x-rmvq)
 # Forge has a basicConstraints bypass in its certificate chain verification (RFC 5280 violation)
@@ -77,10 +79,6 @@ YARN_IGNORE+=(GHSA-5m6q-g25r-mvwx)
 YARN_IGNORE+=(GHSA-ppp5-5v6c-4jwp)
 # SVGO removeScripts plugin leaves some executable scripts intact
 YARN_IGNORE+=(GHSA-2p49-hgcm-8545)
-# brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash
-YARN_IGNORE+=(GHSA-mh99-v99m-4gvg)
-# brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation
-YARN_IGNORE+=(GHSA-rgw5-rvv9-x895)
 # PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments
 YARN_IGNORE+=(GHSA-6g55-p6wh-862q)
 # PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure
