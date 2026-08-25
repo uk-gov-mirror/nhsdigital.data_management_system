@@ -282,10 +282,10 @@ module ProjectsHelper
 
   def project_owner_text
     owner = @project.owner
-    text = " (Applicant)"
+    text = ' (Applicant)'
     return text if current_user != owner
 
-    text << ' (You)'
+    text += ' (You)'
     text
   end
 
@@ -424,7 +424,7 @@ module ProjectsHelper
   end
 
   def check_box_class(dataset, level)
-    class_string = 'defaults_checkbox '
+    class_string = +'defaults_checkbox '
     # TODO: update with real roles
     class_string << 'ca_group ' if dataset_level_match(CANCER_ANALYST_DATASETS, dataset, level)
     class_string << 'd_group ' if dataset_level_match(NDRS_DEVELOPER_DATASETS, dataset, level)
